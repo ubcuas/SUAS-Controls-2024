@@ -15,18 +15,19 @@ with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
         filename = f"data.csv"
         with open(filename, mode='w', newline='') as file:
             writer = csv.writer(file)
-            writer.writerow(["TimeStamp", "TimeSent", "Data"])
+            writer.writerow(["TimeStamp", "TimeSent", "controller millis()", "latitude", "longidude", "altitude (feet)", "GPS date (MM/DD/YYYY)", "GPS time(hh:mm:ss.00)", "number of satellites"])
             while True:
                 data = conn.recv(1024)
                 if not data:
                     break
-                print(f'Received data: {data.decode()}')
+                # print(f'Received data: {data.decode()}')
                 now = datetime.now()
-                dt_string = now.strftime("%d/%m/%Y %H:%M:%S,%f")
+                dt_string = now.strftime("%d/%m/%Y %H:%M:%S.%f")
                 #split data by new line
-                data = data.decode().split("\n")
-                #write data to csv file
+                
+                data = data.decode().strip().split(";")
+                print(data)
                 for line in data:
                     line = line.split(",")
-                    data = [dt_string] + line
-                    writer.writerow(data)
+                    row = [dt_string,] + line
+                    writer.writerow(row)

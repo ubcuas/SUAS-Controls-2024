@@ -1,4 +1,5 @@
 #include <WiFi.h>
+#include "GPS.h"
 
 #define RECORD_LENGTH_SECONDS 10
 
@@ -9,6 +10,7 @@ const uint16_t port = 12345;
 
 void setup() {
   Serial.begin(115200);
+  init_gps();
 
   // Connect to Wi-Fi
   WiFi.begin(ssid, password);
@@ -28,15 +30,13 @@ void loop() {
     data += currentTime;
     // client.println(data);
     while(millis() - currentTime < RECORD_LENGTH_SECONDS * 1000){
-      String val = getVal();
-      client.printf("%d, %s\n", millis(), val); 
+      updateGPS();
+      String val = getInfo();   
+      client.printf("%d, %s;\n", millis(), val.c_str()); 
+      Serial.printf("%d, %s;\n", millis(), val.c_str());
     }
     client.stop();
   }
   delay(1000); // send every 1 second
 }
 
-String getVal(){
-  String data = "some value";
-  return data;
-}
