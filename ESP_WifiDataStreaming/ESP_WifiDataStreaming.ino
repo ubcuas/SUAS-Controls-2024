@@ -1,5 +1,7 @@
 #include <WiFi.h>
 
+#define RECORD_LENGTH_SECONDS 10
+
 const char* ssid = "Tayyibsphone";
 const char* password = "tayyib12345";
 const char* host = "192.168.173.137"; // Replace with your computer's IP address
@@ -19,22 +21,22 @@ void setup() {
 
 void loop() {
   WiFiClient client;
-
+  
   if (client.connect(host, port)) {
-    // Replace with your data reading logic
-    String data = "Hello from ESP32!";
-
-    client.println(data);
-    for(int i = 0; i < 10; i++){
-      client.println(getVal());
-    } 
-    client.println();
-    client.println("end");
+    unsigned long currentTime = millis();
+    String data = "Starting! at ";
+    data += currentTime;
+    // client.println(data);
+    while(millis() - currentTime < RECORD_LENGTH_SECONDS * 1000){
+      String val = getVal();
+      client.printf("%d, %s\n", millis(), val); 
+    }
     client.stop();
   }
   delay(1000); // send every 1 second
 }
 
-int getVal(){
-  return random(0, 100);
+String getVal(){
+  String data = "some value";
+  return data;
 }
