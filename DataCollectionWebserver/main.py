@@ -1,4 +1,6 @@
 import socket
+import csv
+from datetime import datetime
 
 HOST = '0.0.0.0'  # Listen on all available interfaces
 PORT = 12345
@@ -10,10 +12,18 @@ with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
     conn, addr = s.accept()
     with conn:
         print(f'Connected by {addr}')
-        with open('data.txt', 'a') as f:
+        now = datetime.now()
+        dt_string = now.strftime("%d/%m/%Y %H:%M:%S")
+        filename = f"data.csv"
+        with open(filename, mode='w', newline='') as file:
+            writer = csv.writer(file)
             while True:
                 data = conn.recv(1024)
                 if not data:
                     break
                 print(f'Received data: {data.decode()}')
-                f.write(data.decode())
+                #split data by new line
+                data = data.decode().split("\n")
+                #write data to csv file
+                for line in data:
+                    writer.writerow([dt_string, line]) if line else None
