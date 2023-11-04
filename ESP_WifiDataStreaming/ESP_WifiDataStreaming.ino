@@ -53,6 +53,7 @@ void loop() {
       updateGPS();
       String val = getInfo() + ",";
       val += imu_getInfo();    
+
       client.printf("%d, %s;\n", millis(), val.c_str()); 
       Serial.printf("%d, %s;\n", millis(), val.c_str());
     }
