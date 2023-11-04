@@ -1,19 +1,21 @@
 #include <WiFi.h>
 #include "GPS.h"
+#include "imu.h"
 
 #define RECORD_LENGTH_SECONDS 10
 
-const char* ssid = "Tayyibsphone";
-const char* password = "tayyib12345";
-const char* host = "192.168.173.137"; // Replace with your computer's IP address
+const char* ssid = "ali-phone";
+const char* password = "chpx0435";
+const char* host = "192.168.245.142"; // Replace with your computer's IP address
 const uint16_t port = 12345;
 
 void setup() {
   Serial.begin(115200);
   init_gps();
+  init_bno055();
 
   // Enter any serial input to continue
-  Serial.println("Enter a host IP in the first 10 seconds")
+  Serial.println("Enter a host IP in the first 10 seconds");
   while (millis() < 10000) {
     if (Serial.available() > 0) {
       String result = Serial.readString();
@@ -27,8 +29,8 @@ void setup() {
       }
       break;
     }
-    Serial.printf("No IP entered. Reverting to default host: %s\n", host);
   }
+  Serial.printf("No IP entered. Reverting to default host: %s\n", host);
 
   // Connect to Wi-Fi
   WiFi.begin(ssid, password);
