@@ -12,6 +12,24 @@ void setup() {
   Serial.begin(115200);
   init_gps();
 
+  // Enter any serial input to continue
+  Serial.println("Enter a host IP in the first 10 seconds")
+  while (millis() < 10000) {
+    if (Serial.available() > 0) {
+      String result = Serial.readString();
+      if (result.startsWith("IP: ")) {
+        String hostStr = result.substring(4);
+        host = hostStr.c_str();
+        Serial.printf("Host IP changed to %s!", host);
+      } else {
+        Serial.println("Error: host IP should begin with 'IP: ', then the host's public IPV4 address.");
+        Serial.printf("Reverting to default host: %s\n", host);
+      }
+      break;
+    }
+    Serial.printf("No IP entered. Reverting to default host: %s\n", host);
+  }
+
   // Connect to Wi-Fi
   WiFi.begin(ssid, password);
   while (WiFi.status() != WL_CONNECTED) {
@@ -31,7 +49,8 @@ void loop() {
     // client.println(data);
     while(millis() - currentTime < RECORD_LENGTH_SECONDS * 1000){
       updateGPS();
-      String val = getInfo();   
+      String val = getInfo() + ",";
+      val += imu_getInfo();    
       client.printf("%d, %s;\n", millis(), val.c_str()); 
       Serial.printf("%d, %s;\n", millis(), val.c_str());
     }
