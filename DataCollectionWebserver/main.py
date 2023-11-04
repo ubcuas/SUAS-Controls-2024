@@ -15,7 +15,9 @@ with socket.socket(socket.AF_INET, socket.SOCK_STREAM) as s:
         filename = f"data.csv"
         with open(filename, mode='w', newline='') as file:
             writer = csv.writer(file)
-            writer.writerow(["TimeStamp", "TimeSent", "controller millis()", "latitude", "longidude", "altitude (feet)", "GPS date (MM/DD/YYYY)", "GPS time(hh:mm:ss.00)", "number of satellites"])
+            writer.writerow(["TimeStamp", "TimeSent", "controller millis()", "latitude", "longidude", "altitude (feet)", 
+                             "GPS date (MM/DD/YYYY)", "GPS time(hh:mm:ss.00)", "number of satellites", 
+                             "angleX", "angleY", "angleZ", "accelX", "accelY", "accelZ", "angular vel x", "angular vel y", "angular vel z"])
             while True:
                 data = conn.recv(1024)
                 if not data:
