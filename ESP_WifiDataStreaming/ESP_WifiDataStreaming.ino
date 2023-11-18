@@ -1,6 +1,7 @@
 #include <WiFi.h>
 #include "GPS.h"
 #include "imu.h"
+#include "bmp_280.h"
 
 #define RECORD_LENGTH_SECONDS 10
 
@@ -13,6 +14,7 @@ void setup() {
   Serial.begin(115200);
   init_gps();
   init_bno055();
+  init_bmp_280();
 
   // Enter any serial input to continue
   Serial.println("Enter a host IP in the first 10 seconds");
@@ -41,6 +43,7 @@ void setup() {
   Serial.println("Connected to WiFi");
 }
 
+
 void loop() {
   WiFiClient client;
   
@@ -51,8 +54,12 @@ void loop() {
     // client.println(data);
     while(millis() - currentTime < RECORD_LENGTH_SECONDS * 1000){
       updateGPS();
-      String val = getInfo() + ",";
-      val += imu_getInfo();    
+
+      String val = getInfo();
+      String imu_data = imu_getInfo();
+      String bmp_280_data = bmp_280_getInfo();
+      val += imu_data;    
+      val += bmp_280_data;
 
       client.printf("%d, %s;\n", millis(), val.c_str()); 
       Serial.printf("%d, %s;\n", millis(), val.c_str());
