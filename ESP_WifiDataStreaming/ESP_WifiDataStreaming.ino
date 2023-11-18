@@ -55,8 +55,8 @@ void loop() {
     while(millis() - currentTime < RECORD_LENGTH_SECONDS * 1000){
       updateGPS();
 
-      String val = getInfo();
-      String imu_data = imu_getInfo();
+      String val = getInfo() + ",";
+      String imu_data = imu_getInfo() + ",";
       String bmp_280_data = bmp_280_getInfo();
       val += imu_data;    
       val += bmp_280_data;
