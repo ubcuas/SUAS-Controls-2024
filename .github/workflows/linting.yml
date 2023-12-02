@@ -1,0 +1,28 @@
+name: Arduino-lint
+
+on:
+  push:
+    paths:
+      - '**.ino'
+      - '**.h'
+      - '**.cpp'
+  pull_request:
+    paths:
+      - '**.ino'
+      - '**.h'
+      - '**.cpp'
+
+jobs:
+  lint:
+    name: Lint Arduino Code
+    runs-on: ubuntu-latest
+    strategy:
+      fail-fast: true
+    steps:
+      - name: Checkout Code
+        uses: actions/checkout@v2
+      - name: Run Arduino Lint
+        uses: arduino/arduino-lint-action@v1
+        with:
+          library-manager: update
+          compliance: strict
