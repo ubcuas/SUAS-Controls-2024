@@ -215,19 +215,19 @@ SENSORS_Status_t sensors::readIMUData(){
 
             sensorData.imuData.Orientation.set(q0,q1,q2,q3);
 
-            SERIAL_PORT.print(0x1001);
-            SERIAL_PORT.print(F(","));
-            SERIAL_PORT.print(q0, 3);
-            SERIAL_PORT.print(F(","));
-            SERIAL_PORT.print(q1, 3);
-            SERIAL_PORT.print(F(","));
-            SERIAL_PORT.print(q2, 3);
-            SERIAL_PORT.print(F(","));
-            SERIAL_PORT.print(q3, 3);
-            SERIAL_PORT.print(F("\n"));
-            SERIAL_PORT.print(F(" Accuracy:"));
-            SERIAL_PORT.println(data.Quat9.Data.Accuracy);
-            SERIAL_PORT.print(F("\n"));
+            // SERIAL_PORT.print(0x1001);
+            // SERIAL_PORT.print(F(","));
+            // SERIAL_PORT.print(q0, 3);
+            // SERIAL_PORT.print(F(","));
+            // SERIAL_PORT.print(q1, 3);
+            // SERIAL_PORT.print(F(","));
+            // SERIAL_PORT.print(q2, 3);
+            // SERIAL_PORT.print(F(","));
+            // SERIAL_PORT.print(q3, 3);
+            // SERIAL_PORT.print(F("\n"));
+            // SERIAL_PORT.print(F(" Accuracy:"));
+            // SERIAL_PORT.println(data.Quat9.Data.Accuracy);
+            // SERIAL_PORT.print(F("\n"));
         }
         if(accnew && quatnew && imu.status != ICM_20948_Stat_FIFOMoreDataAvail){
             dataRead = true;
@@ -240,7 +240,7 @@ SENSORS_Status_t sensors::readIMUData(){
     // Read the linear acceleration
     Vector accRef{};
     rotate_vect_by_quat_R(sensorData.imuData.RawAccel, sensorData.imuData.Orientation, accRef);
-    accRef.add(Vector(0.0, 0.0, -1*GRAVITY));
+    accRef.add(Vector(0.0, 0.0, -1.0));
     //copy the data to the sensorData struct
     sensorData.imuData.LinearAccel.copy(accRef);
 
