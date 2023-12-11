@@ -65,21 +65,24 @@ void KalmanFilter::initialize(){
     Q << 0.25*dt*dt*dt*dt, 0.5*dt*dt*dt,
          0.5*dt*dt*dt, dt*dt;
     //add the accelerometer stddev
-    Q = Q * 0.005201622*0.005201622;
+    double gravity = 9.809;
+    double acc_stddev = 0.0030 * gravity;
+    Q = Q * acc_stddev * acc_stddev;
 
     // Initialize the measurement matrix
     H << 1, 0;
 
     // Initialize the measurement noise covariance matrix
-    R << 0.151504792 * 0.151504792*0.2; //altitude barmeter stddev
+    double baro_stddev = 1.1466;
+    R << baro_stddev * baro_stddev; //altitude barmeter stddev
 
     // Initialize the process noise matrix
     W << 0.5*dt*dt,
          dt;
 
     // Initialize the state covariance matrix
-    P << 1, 0,
-         0, 1;
+    P << 0.001, 0,
+         0, 0.001;
 
     // Initialize the state vector
     X << 0,

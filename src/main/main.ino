@@ -8,7 +8,7 @@
 #include "sensors.h"
 #include "kalmanfilter.h"
 
-#define ACQUIRE_RATE 58 //Hz
+#define ACQUIRE_RATE 55 //Hz
 #define DELTA_T (1.0f / ACQUIRE_RATE) //seconds
 #define NUM_STATES 2
 #define NUM_MEASUREMENTS 1
@@ -51,11 +51,13 @@ KalmanFilter myKalmanFilter_inst(NUM_STATES, NUM_MEASUREMENTS, NUM_CONTROL_INPUT
 //          0;
 // }
 
-
+//for counting loop rate
 int i = 0;
 unsigned long timeStart = 0;
 
 void PrintSensorData();
+void DoKalman();
+void DoCount();
 
 void setup()
 {
@@ -66,6 +68,17 @@ void setup()
     SERIAL_PORT.println("Sensor init failed");
     while(1);
   }
+
+  // Calibrate the barometer
+  if(mySensor_inst.CalibrateBarometerAltitude() != Sensors::SENSORS_OK){
+      SERIAL_PORT.println("Barometer calibration failed");
+  }
+
+  // Calibrate the IMU
+  if(mySensor_inst.CalibrateIMULinearAcceleration() != Sensors::SENSORS_OK){
+      SERIAL_PORT.println("IMU calibration failed");
+  }
+
   // Initialize the Kalman Filter
   myKalmanFilter_inst.initialize();
   delay(100);
@@ -80,15 +93,23 @@ void loop()
     while(1);
   }
 
+  DoKalman();
+
+  PrintSensorData();
+
+  //DoCount();
+}
+
+void DoKalman(){
   //Remove the bias from both sensors.
-  double ACC_Z = sensorData_inst.imuData.LinearAccel.v2 -= 0.034637924;  //obtained from the mean of the data
-  double Alt_Baro = sensorData_inst.barometerData.Altitude -= 202.2801934; //obtained from the mean of the data
+  double ACC_Z = sensorData_inst.imuData.LinearAccel.v2 - sensorData_inst.imuData.LinearAccelOffset.v2;  //obtained from the mean of the data
+  double Alt_Baro = sensorData_inst.barometerData.Altitude - sensorData_inst.barometerData.AltitudeOffset;
 
   //make them into matrices
   MatrixXd Z(1,1);
   Z << Alt_Baro;
   MatrixXd U(1,1);
-  U << ACC_Z;
+  U << ACC_Z*GRAVITY; //the current value is in g's, so multiply by gravity to get m/s^2
 
   //predict
   myKalmanFilter_inst.predict(U);
@@ -100,25 +121,29 @@ void loop()
   MatrixXd X = myKalmanFilter_inst.getState();
 
   //print the data
-  // SERIAL_PORT.print("Altitude(m): ");
-  SERIAL_PORT.print(X(0,0));
+  //SERIAL_PORT.print(0x4004);
+  //SERIAL_PORT.print(",");
+  SERIAL_PORT.print(X(0,0));    //pos
   SERIAL_PORT.print(",");
-  // SERIAL_PORT.print("Velocity(m/s): ");
-  SERIAL_PORT.println(X(1,0));
-  
+  SERIAL_PORT.print(X(1,0));    //vel
+  SERIAL_PORT.print(",");
+  SERIAL_PORT.print(Alt_Baro);  
 }
 
-
 void PrintSensorData(){
-// Print the data
-  SERIAL_PORT.print("Altitude(m): ");
-  SERIAL_PORT.println(sensorData_inst.barometerData.Altitude);
-  SERIAL_PORT.print("Acceleration(m/s^2): ");
-  SERIAL_PORT.println(sensorData_inst.imuData.LinearAccel.v2);
-  SERIAL_PORT.print("Temperature(C): ");
-  SERIAL_PORT.println(sensorData_inst.barometerData.Temperature);
-  SERIAL_PORT.print("Pressure(hPa): ");
-  SERIAL_PORT.println(sensorData_inst.barometerData.Pressure);
+  // Print the data
+  //SERIAL_PORT.print(0x4008);
+  SERIAL_PORT.print(",");
+  SERIAL_PORT.print(sensorData_inst.barometerData.Altitude - sensorData_inst.barometerData.AltitudeOffset);
+  SERIAL_PORT.print(",");
+  SERIAL_PORT.print(sensorData_inst.imuData.LinearAccel.v0 - sensorData_inst.imuData.LinearAccelOffset.v0);
+  SERIAL_PORT.print(",");
+  SERIAL_PORT.print(sensorData_inst.imuData.LinearAccel.v1 - sensorData_inst.imuData.LinearAccelOffset.v1);
+  SERIAL_PORT.print(",");
+  SERIAL_PORT.println(sensorData_inst.imuData.LinearAccel.v2 - sensorData_inst.imuData.LinearAccelOffset.v2);
+}
+
+void DoCount(){
   if(i > 100){
     i = 0;
     SERIAL_PORT.printf("100 iterations done in: %d mS\n", (int)(millis()-timeStart));
@@ -128,5 +153,4 @@ void PrintSensorData(){
   else{
     i++;
   }
-  //delay(1);
 }

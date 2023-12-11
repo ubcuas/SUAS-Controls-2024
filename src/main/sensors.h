@@ -23,7 +23,7 @@
 
 // On the SparkFun 9DoF IMU breakout the default is 1, and when the ADR jumper is closed the value becomes 0
 #define AD0_VAL 1
-#define GRAVITY 9.80665f
+#define GRAVITY 9.809f
 
 // BMP 280 CONFIG
 #define BMP_ADDRESS 0x76
@@ -37,12 +37,14 @@ typedef struct{
     Vector RawAccel;
     Quaternion Orientation;
     Vector LinearAccel;
+    Vector LinearAccelOffset;
 } imuData_t;
 
 typedef struct{
     float Temperature;
     float Pressure;
     float Altitude;
+    float AltitudeOffset;
 } barometerData_t;
 
 typedef struct{
@@ -69,6 +71,8 @@ class sensors{
     SENSORS_Status_t readData_noGPS(sensorData_t * sensorData_Out);
     SENSORS_Status_t readData_GPS(sensorData_t * sensorData_Out);
     sensorData_t sensorData;
+    SENSORS_Status_t CalibrateIMULinearAcceleration();
+    SENSORS_Status_t CalibrateBarometerAltitude();
 
     private:
     //ICM_20948 Object
@@ -84,10 +88,12 @@ class sensors{
     //IMU Functions
     SENSORS_Status_t initIMU();
     SENSORS_Status_t readIMUData();
+    
 
     //Barometer Functions
     SENSORS_Status_t initBarometer();
     SENSORS_Status_t readBarometerData();
+    
 
     //GPS Functions
     SENSORS_Status_t initGPS();

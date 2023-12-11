@@ -10,11 +10,11 @@ import time
 ser = serial.Serial('COM3', 921600)  # Adjust your COM port and baud rate
 
 # Open the file
-filename = 'data_acc.csv'
+filename = r'C:\Users\nisch\OneDrive - UBC\UBC_UAS\2023\UAS-PPES\RecordedData\Data_LinAcc_Altitude_Z_Axis_With_Kalman_OUTPUT_Stationary_1.csv'
 file = open(filename, 'w')
 
 # Write the header
-header = 'A_z\n'
+header = 'P_Pos, P_Vel, Alt_1, Altitude, Acc_X, Acc_Y, Acc_Z\n'
 file.write(header)
 
 # Read and record the data until keyboard interrupt

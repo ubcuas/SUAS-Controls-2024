@@ -71,11 +71,13 @@ SENSORS_Status_t sensors::initSensorDataStruct(){
     sensorData.imuData.RawAccel = Vector(0.0, 0.0, 0.0);
     sensorData.imuData.Orientation = Quaternion(0.0, 0.0, 0.0, 0.0);
     sensorData.imuData.LinearAccel = Vector(0.0, 0.0, 0.0);
+    sensorData.imuData.LinearAccelOffset = Vector(0.0, 0.0, 0.0);
 
     // Initialize the Barometer data
     sensorData.barometerData.Temperature = 0.0;
     sensorData.barometerData.Pressure = 0.0;
     sensorData.barometerData.Altitude = 0.0;
+    sensorData.barometerData.AltitudeOffset = 0.0;
 
     // Initialize the GPS data
     sensorData.gpsData.Latitude = 0.0;
@@ -156,8 +158,8 @@ SENSORS_Status_t sensors::initBarometer(){
     // Configure the BMP as Handheld Device Dynamic Use Case (see datasheet pg 19)
     bmp.setSampling(Adafruit_BMP280::MODE_NORMAL,     /* Operating Mode. */
                   Adafruit_BMP280::SAMPLING_X1,     /* Temp. oversampling */
-                  Adafruit_BMP280::SAMPLING_X4,    /* Pressure oversampling */
-                  Adafruit_BMP280::FILTER_X16,      /* Filtering. */
+                  Adafruit_BMP280::SAMPLING_X16,    /* Pressure oversampling */
+                  Adafruit_BMP280::FILTER_X4,      /* Filtering. */
                   Adafruit_BMP280::STANDBY_MS_1); /* Standby time. */
     
     SERIAL_PORT.println("Barometer init successful");
@@ -244,6 +246,35 @@ SENSORS_Status_t sensors::readIMUData(){
     //copy the data to the sensorData struct
     sensorData.imuData.LinearAccel.copy(accRef);
 
+    return status;
+}
+
+SENSORS_Status_t sensors::CalibrateIMULinearAcceleration(){
+    SENSORS_Status_t status = SENSORS_OK;
+    uint16_t numSamples = 100;
+    Vector sum{};
+    for(uint16_t i = 0; i < numSamples; i++){
+        if(readIMUData() != SENSORS_OK){
+            SERIAL_PORT.println("IMU read failed");
+            return SENSORS_FAIL;
+        }
+        sum.add(sensorData.imuData.LinearAccel);
+        delay(20);
+    }
+    sum.scale(1.0/(float)numSamples);
+    sensorData.imuData.LinearAccelOffset.copy(sum);
+    return status;
+}
+
+SENSORS_Status_t sensors::CalibrateBarometerAltitude(){
+    SENSORS_Status_t status = SENSORS_OK;
+    uint16_t numSamples = 100;
+    float sum = 0.0;
+    for(uint16_t i = 0; i < numSamples; i++){
+        sum += bmp.readAltitude(SEALEVELPRESSURE_HPA);
+        delay(20);
+    }
+    sensorData.barometerData.AltitudeOffset = sum/(float)numSamples;
     return status;
 }
 
