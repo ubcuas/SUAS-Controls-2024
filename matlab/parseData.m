@@ -10,6 +10,7 @@ function result =  parseData(samplingFrequency, filePath)
     P_Pos = data.P_Pos;
     P_Vel = data.P_Vel;
     Alt_1 = data.Alt_1;
+    Pressure = data.Pressure;
 
     % Calculate the number of data points
     numDataPoints = height(data);
@@ -19,5 +20,5 @@ function result =  parseData(samplingFrequency, filePath)
     Time = (0:numDataPoints-1)' / samplingFrequency;
 
     % Combine all the data into a single table (optional)
-    result = table(Time, Altitude, Acc_X, Acc_Y, Acc_Z, P_Pos, P_Vel, Alt_1);
+    result = table(Time, Altitude, Acc_X, Acc_Y, Acc_Z, P_Pos, P_Vel, Alt_1, Pressure);
 end

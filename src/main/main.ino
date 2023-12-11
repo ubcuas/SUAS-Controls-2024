@@ -136,6 +136,8 @@ void PrintSensorData(){
   SERIAL_PORT.print(",");
   SERIAL_PORT.print(sensorData_inst.barometerData.Altitude - sensorData_inst.barometerData.AltitudeOffset);
   SERIAL_PORT.print(",");
+  SERIAL_PORT.print(sensorData_inst.barometerData.Pressure/100);
+  SERIAL_PORT.print(",");
   SERIAL_PORT.print(sensorData_inst.imuData.LinearAccel.v0 - sensorData_inst.imuData.LinearAccelOffset.v0);
   SERIAL_PORT.print(",");
   SERIAL_PORT.print(sensorData_inst.imuData.LinearAccel.v1 - sensorData_inst.imuData.LinearAccelOffset.v1);

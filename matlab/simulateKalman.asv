@@ -8,6 +8,7 @@ SampleRate = 55.0;
 Gravity = 9.809;
 RecordedData = parseData(SampleRate, DataLocation);
 SampleRate = 55.0;
+P0 = 1021.8;
 
 %To visualize the DATA
 %Animate3D(RecordedData)
@@ -20,7 +21,7 @@ NumMeasurements = 1;
 NumControlInputs = 1;
 Dt = 1/SampleRate;
 Acc_Z_stdev = 0.0030 * Gravity; %meters per second squared
-Barometer_stdev = 1.1466; %meters
+Barometer_stdev = 1.5; %meters
 meanAccZ = mean(RecordedData.Acc_Z)*Gravity;
 
 %State Transition Matrix -- Need to customize based on you system model
@@ -52,9 +53,11 @@ P = [0.001 0;
 
 %make a kalman filter object
 myKalmanFilter_inst = KalmanFilter(NumStates, NumMeasurements, NumControlInputs, Dt);
+myExtendedKalmanFilter_inst = ExtendedKalmanFilter(NumStates, NumMeasurements, NumControlInputs, Dt, P0);
 
 %initialize the object
 myKalmanFilter_inst.initializeMatrices(F,G,Q,H,R,W,P);
+myEKalmanFilter_inst.initializeMatrices(F,G,Q,H,R,W,P);
 
 %Make a vector to store the results
 KalmanFilterResults = zeros(length(RecordedData.Time),NumStates);
@@ -65,7 +68,7 @@ for i = 1:length(RecordedData.Time)
     myKalmanFilter_inst.predict(RecordedData.Acc_Z(i) * Gravity - meanAccZ);
     
     %update the state every 10th sample
-    if (mod(i,1) == 0)
+    if (mod(i,5) == 0)
         myKalmanFilter_inst.update(RecordedData.Altitude(i));
     end
     % myKalmanFilter_inst.update(RecordedData.Altitude(i));
@@ -85,7 +88,7 @@ plot(RecordedData.Time, RecordedData.P_Pos, 'g');
 hold off;
 xlabel('Time (s)');
 ylabel('Altitude (m)');
-legend('Measured', 'Estimated_MATLAB','Estimated_ESP' );
+legend('Measured', 'Estimated-MATLAB','Estimated-ESP' );
 title('Altitude Estimation Results');
 
 % Subplot for Velocity
