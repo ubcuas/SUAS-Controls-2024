@@ -54,6 +54,7 @@ KalmanFilter myKalmanFilter_inst(NUM_STATES, NUM_MEASUREMENTS, NUM_CONTROL_INPUT
 //for counting loop rate
 int i = 0;
 unsigned long timeStart = 0;
+uint8_t GPS_Loop_Counter = 0;
 
 void PrintSensorData();
 void DoKalman();
@@ -88,9 +89,19 @@ void setup()
 void loop()
 {
   //Read Data
-  if(mySensor_inst.readData_noGPS(&sensorData_inst) != Sensors::SENSORS_OK){
-    SERIAL_PORT.println("Sensor read failed");
-    while(1);
+  if(GPS_Loop_Counter >= ACQUIRE_RATE/GPS_RATE){
+    if(mySensor_inst.readData_GPS(&sensorData_inst) != Sensors::SENSORS_OK){
+      SERIAL_PORT.println("Sensor read failed");
+      while(1);
+    }
+    GPS_Loop_Counter = 0;
+  }
+  else{
+    if(mySensor_inst.readData_noGPS(&sensorData_inst) != Sensors::SENSORS_OK){
+      SERIAL_PORT.println("Sensor read failed");
+      while(1);
+    }
+    GPS_Loop_Counter++;
   }
 
   DoKalman();
@@ -127,22 +138,33 @@ void DoKalman(){
   SERIAL_PORT.print(",");
   SERIAL_PORT.print(X(1,0));    //vel
   SERIAL_PORT.print(",");
-  SERIAL_PORT.print(Alt_Baro);  
+  SERIAL_PORT.print(Alt_Baro, 6); //alt);  
 }
 
 void PrintSensorData(){
   // Print the data
   //SERIAL_PORT.print(0x4008);
   SERIAL_PORT.print(",");
-  SERIAL_PORT.print(sensorData_inst.barometerData.Altitude - sensorData_inst.barometerData.AltitudeOffset);
+  SERIAL_PORT.print(sensorData_inst.barometerData.Altitude - sensorData_inst.barometerData.AltitudeOffset, 6);
   SERIAL_PORT.print(",");
-  SERIAL_PORT.print(sensorData_inst.barometerData.Pressure/100);
+  SERIAL_PORT.print(sensorData_inst.barometerData.Pressure/100, 6);
   SERIAL_PORT.print(",");
-  SERIAL_PORT.print(sensorData_inst.imuData.LinearAccel.v0 - sensorData_inst.imuData.LinearAccelOffset.v0);
+  SERIAL_PORT.print(sensorData_inst.imuData.LinearAccel.v0 - sensorData_inst.imuData.LinearAccelOffset.v0, 6);
   SERIAL_PORT.print(",");
-  SERIAL_PORT.print(sensorData_inst.imuData.LinearAccel.v1 - sensorData_inst.imuData.LinearAccelOffset.v1);
+  SERIAL_PORT.print(sensorData_inst.imuData.LinearAccel.v1 - sensorData_inst.imuData.LinearAccelOffset.v1, 6);
   SERIAL_PORT.print(",");
-  SERIAL_PORT.println(sensorData_inst.imuData.LinearAccel.v2 - sensorData_inst.imuData.LinearAccelOffset.v2);
+  SERIAL_PORT.print(sensorData_inst.imuData.LinearAccel.v2 - sensorData_inst.imuData.LinearAccelOffset.v2, 6);
+  SERIAL_PORT.print(",");
+  SERIAL_PORT.print(sensorData_inst.gpsData.Latitude, 6);
+  SERIAL_PORT.print(",");
+  SERIAL_PORT.print(sensorData_inst.gpsData.Longitude, 6);
+  SERIAL_PORT.print(",");
+  SERIAL_PORT.print(sensorData_inst.gpsData.Altitude, 6);
+  SERIAL_PORT.print(",");
+  SERIAL_PORT.print(sensorData_inst.gpsData.lock? "LOCKED" : "NOT LOCKED");
+  SERIAL_PORT.print(",");
+  SERIAL_PORT.println(sensorData_inst.gpsData.satellites);
+
 }
 
 void DoCount(){

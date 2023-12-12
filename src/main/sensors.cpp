@@ -60,7 +60,19 @@ SENSORS_Status_t sensors::readData_noGPS(sensorData_t * sensorData_Out){
 }
 
 SENSORS_Status_t sensors::readData_GPS(sensorData_t * sensorData_Out){
+    SENSORS_Status_t status = SENSORS_OK;
 
+    // Read the IMU
+    status = readIMUData();
+    // Read the Barometer
+    status = readBarometerData();
+    // Read the GPS
+    status = readGPSData();
+
+    // copy the data to the sensorData struct
+    *sensorData_Out = this->sensorData;
+
+    return status;
 }
 
 //     private:
@@ -83,7 +95,8 @@ SENSORS_Status_t sensors::initSensorDataStruct(){
     sensorData.gpsData.Latitude = 0.0;
     sensorData.gpsData.Longitude = 0.0;
     sensorData.gpsData.Altitude = 0.0;
-    sensorData.gpsData.updated = false;
+    sensorData.gpsData.lock = false;
+    sensorData.gpsData.satellites = 0;
 
     return status;
 }
@@ -168,6 +181,34 @@ SENSORS_Status_t sensors::initBarometer(){
 
 SENSORS_Status_t sensors::initGPS(){
     SENSORS_Status_t status = SENSORS_OK;
+
+    // Initialize the GPS
+    gps.begin();
+    
+    // wait for the GPS to get a lock
+    SERIAL_PORT.print(F("Waiting for GPS lock: "));
+
+    //first read Data from GPS
+    int numTries = 0;
+    while(!sensorData.gpsData.lock){
+        if(readGPSData() != SENSORS_OK){
+            SERIAL_PORT.println(F("GPS read failed, trying again..."));
+        }
+        else{
+            SERIAL_PORT.printf("Try: %d\n", numTries);
+        }
+        numTries++;
+        if(numTries > 600){
+            SERIAL_PORT.println(F("GPS lock failed"));
+            status = SENSORS_FAIL;
+            return status;
+        }
+        delay(250);
+    }
+
+    SERIAL_PORT.println(F("GPS lock successful"));
+    //Print the GPS data
+    PrintGPSData();
 
     SERIAL_PORT.println("GPS init successful");
     return status;
@@ -290,6 +331,33 @@ SENSORS_Status_t sensors::readBarometerData(){
 }
 
 SENSORS_Status_t sensors::readGPSData(){
-
+    SENSORS_Status_t status = SENSORS_OK;
+    // Read the GPS
+    if(gps.update() != gpsLowLevel::GPS_OK){
+        SERIAL_PORT.println(F("GPS update failed, maybe no data in buffer? or wrong Pin connection (RX-TX)"));
+        status = SENSORS_FAIL;
+        return status;
+    }
+    //copy the data to the sensorData struct
+    gps.fetchAllData(&sensorData.gpsData);
+    return status;
 }
 
+void sensors::PrintGPSData(){
+
+    //check if the GPS has a lock
+    if(sensorData.gpsData.lock){
+        SERIAL_PORT.print(F("Location: ")); 
+        SERIAL_PORT.print(sensorData.gpsData.Latitude, 6);
+        SERIAL_PORT.print(F(","));
+        SERIAL_PORT.print(sensorData.gpsData.Longitude, 6);
+        SERIAL_PORT.print(F(","));
+        SERIAL_PORT.print(sensorData.gpsData.Altitude, 6);
+        SERIAL_PORT.print(F(","));
+        SERIAL_PORT.print(sensorData.gpsData.satellites);
+        SERIAL_PORT.print(F("\n"));
+    }
+    else{
+        SERIAL_PORT.println(F("No GPS lock"));
+    }
+}

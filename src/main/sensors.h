@@ -30,6 +30,14 @@
 #define BMP_CHIP_ID 0x58
 #define SEALEVELPRESSURE_HPA (1026.9)
 
+// GPS CONFIG
+#define GPSSERIAL Serial2
+#define GPSBAUDRATE 115200
+#define GPS_RX 2
+#define GPS_TX 4
+#define GPS_RATE 5
+
+
 
 namespace Sensors{
 
@@ -47,12 +55,6 @@ typedef struct{
     float AltitudeOffset;
 } barometerData_t;
 
-typedef struct{
-    float Latitude;
-    float Longitude;
-    float Altitude;
-    bool updated;
-} gpsData_t;
 
 typedef struct{
     imuData_t imuData;
@@ -67,12 +69,14 @@ typedef enum{
 
 class sensors{
     public:
+    sensors(): gps(&GPSSERIAL, GPSBAUDRATE, GPS_RATE, GPS_RX, GPS_TX){};
     SENSORS_Status_t init();
     SENSORS_Status_t readData_noGPS(sensorData_t * sensorData_Out);
     SENSORS_Status_t readData_GPS(sensorData_t * sensorData_Out);
     sensorData_t sensorData;
     SENSORS_Status_t CalibrateIMULinearAcceleration();
     SENSORS_Status_t CalibrateBarometerAltitude();
+    void PrintGPSData();
 
     private:
     //ICM_20948 Object

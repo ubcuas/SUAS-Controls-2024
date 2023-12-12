@@ -9,26 +9,38 @@
 #include "Arduino.h"
 #include <TinyGPSPlus.h>
 
-// GPS CONFIG
-#define GPSSERIAL Serial2
-#define GPSBAUDRATE 115200
-#define GPS_RX 2
-#define GPS_TX 4
 
-class gpsLowLevel{
-    public:
-    HardwareSerial *gpsSerial = &GPSSERIAL;
-    TinyGPSPlus gps;
-    typedef enum{
+//if you add more data to the gpsData_t struct, make sure to update the functions in gpsLowLevel.cpp
+typedef struct{
+    float Latitude;
+    float Longitude;
+    float Altitude;
+    bool lock;
+    int satellites;
+} gpsData_t;
+
+class gpsLowLevel {
+public:
+    gpsLowLevel(HardwareSerial *gpsSerial = &Serial2, uint32_t GPSBaudRate = 115200, uint8_t GPSRate = 5, uint8_t RXPin = 2, uint8_t TXPin = 4);
+    
+    enum GPS_Status {
         GPS_OK,
         GPS_FAIL
-        } GPS_Status;
+    };
+    GPS_Status begin();
+    GPS_Status update();
+    GPS_Status fetchAllData(gpsData_t * gpsData_Out);
 
-    private:
-    uint8_t RX_PIN = GPS_RX;
-    uint8_t TX_PIN = GPS_TX;
-    uint32_t GPS_Baud_Rate = GPSBAUDRATE;
-    uint8_t GPS_Rate = 5;
+private:
+    HardwareSerial *gpsSerial;
+    uint8_t RXPin;
+    uint8_t TXPin;
+    uint32_t GPSBaudRate;
+    uint8_t GPSRate;
+    TinyGPSPlus gps;
+    gpsData_t gpsData;
+
+    // Additional private member variables and methods as needed
 };
 
 #endif // GPS_LOW_LEVEL_H
