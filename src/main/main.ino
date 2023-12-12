@@ -91,15 +91,15 @@ void loop()
   //Read Data
   if(GPS_Loop_Counter >= ACQUIRE_RATE/GPS_RATE){
     if(mySensor_inst.readData_GPS(&sensorData_inst) != Sensors::SENSORS_OK){
-      SERIAL_PORT.println("Sensor read failed");
-      while(1);
+      //SERIAL_PORT.println("Sensor read failed");
+      //while(1);
     }
     GPS_Loop_Counter = 0;
   }
   else{
     if(mySensor_inst.readData_noGPS(&sensorData_inst) != Sensors::SENSORS_OK){
-      SERIAL_PORT.println("Sensor read failed");
-      while(1);
+      //SERIAL_PORT.println("Sensor read failed");
+      //while(1);
     }
     GPS_Loop_Counter++;
   }
