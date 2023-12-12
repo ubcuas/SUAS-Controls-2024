@@ -2,6 +2,9 @@ function result =  parseData(samplingFrequency, filePath)
     % Read the CSV file into a table
     data = readtable(filePath);
 
+    %remove the row with NaN
+    data = rmmissing(data);
+
     % Extract columns for Altitude, Acc_X, Acc_Y, and Acc_Z
     Altitude = data.Altitude;
     Acc_X = data.Acc_X;
@@ -9,7 +12,7 @@ function result =  parseData(samplingFrequency, filePath)
     Acc_Z = data.Acc_Z;
     P_Pos = data.P_Pos;
     P_Vel = data.P_Vel;
-    Alt_1 = data.Alt_1;
+    % Alt_1 = data.Alt_1;
     Pressure = data.Pressure;
 
     % Calculate the number of data points
@@ -19,6 +22,7 @@ function result =  parseData(samplingFrequency, filePath)
     % Assuming the first sample is at t=0
     Time = (0:numDataPoints-1)' / samplingFrequency;
 
+
     % Combine all the data into a single table (optional)
-    result = table(Time, Altitude, Acc_X, Acc_Y, Acc_Z, P_Pos, P_Vel, Alt_1, Pressure);
+    result = table(Time, Altitude, Acc_X, Acc_Y, Acc_Z, P_Pos, P_Vel, Pressure);  %add alt_1 if needed
 end

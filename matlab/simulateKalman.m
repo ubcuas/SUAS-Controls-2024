@@ -3,7 +3,7 @@ close all;
 clear all;
 
 %load the data
-DataLocation = '../RecordedData/Data_LinAcc_Pressure_Altitude_Z_Axis_With_Kalman_OUTPUT_UP_DOWN_1.csv';
+DataLocation = '../RecordedData/Dec_12_23_TestData_Sensor.csv';
 SampleRate = 55.0;
 Gravity = 9.809;
 RecordedData = parseData(SampleRate, DataLocation);
@@ -93,7 +93,7 @@ plot(RecordedData.Time, RecordedData.Altitude, 'r');
 hold on;
 plot(RecordedData.Time, KalmanFilterResults(:,1), 'b');
 plot(RecordedData.Time, RecordedData.P_Pos, 'g');
-plot(RecordedData.Time, ExtendedKalmanFilterResults(:,1), 'k');
+% plot(RecordedData.Time, ExtendedKalmanFilterResults(:,1), 'k');
 hold off;
 xlabel('Time (s)');
 ylabel('Altitude (m)');
@@ -104,7 +104,7 @@ title('Altitude Estimation Results');
 subplot(2,1,2); % Two rows, one column, second subplot
 plot(RecordedData.Time, KalmanFilterResults(:,2), 'r');
 hold on
-plot(RecordedData.Time, ExtendedKalmanFilterResults(:,2), 'k');
+% plot(RecordedData.Time, ExtendedKalmanFilterResults(:,2), 'k');
 plot(RecordedData.Time, RecordedData.P_Vel, 'g');
 hold off
 xlabel('Time (s)');

@@ -189,22 +189,22 @@ SENSORS_Status_t sensors::initGPS(){
     SERIAL_PORT.print(F("Waiting for GPS lock: "));
 
     //first read Data from GPS
-    int numTries = 0;
-    while(!sensorData.gpsData.lock){
-        if(readGPSData() != SENSORS_OK){
-            SERIAL_PORT.println(F("GPS read failed, trying again..."));
-        }
-        else{
-            SERIAL_PORT.printf("Try: %d\n", numTries);
-        }
-        numTries++;
-        if(numTries > 600){
-            SERIAL_PORT.println(F("GPS lock failed"));
-            status = SENSORS_FAIL;
-            return status;
-        }
-        delay(250);
-    }
+    // int numTries = 0;
+    // while(!sensorData.gpsData.lock){
+    //     if(readGPSData() != SENSORS_OK){
+    //         SERIAL_PORT.println(F("GPS read failed, trying again..."));
+    //     }
+    //     else{
+    //         SERIAL_PORT.printf("Try: %d\n", numTries);
+    //     }
+    //     numTries++;
+    //     if(numTries > 600){
+    //         SERIAL_PORT.println(F("GPS lock failed"));
+    //         status = SENSORS_FAIL;
+    //         return status;
+    //     }
+    //     delay(250);
+    // }
 
     SERIAL_PORT.println(F("GPS lock successful"));
     //Print the GPS data

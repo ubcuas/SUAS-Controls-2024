@@ -16,7 +16,9 @@ def quaternion_to_rotation_matrix(quaternion):
     Returns:
     rotation_matrix (array): A 4x4 numpy array representing the rotation matrix.
     """
-    w, x, y, z = quaternion
+    w, y, x, z = quaternion
+
+    z = -z  # Invert the z-axis
 
     xx, xy, xz = x * x, x * y, x * z
     yy, yz, zz = y * y, y * z, z * z
@@ -69,6 +71,49 @@ def draw_cube(vertices, edges):
             glVertex3fv(vertices[vertex])
     glEnd()
 
+# Subtract Quaternions
+def subtract_quaternion(q1, q2):
+    """
+    Subtract quaternion q2 from q1.
+
+    Args:
+    q1, q2 (array): Quaternions in the format [x, y, z, w]
+
+    Returns:
+    result (array): The resulting quaternion after subtraction.
+    """
+    result = np.zeros(4)
+    result[0] = q1[0] - q2[0]
+    result[1] = q1[1] - q2[1]
+    result[2] = q1[2] - q2[2]
+    result[3] = q1[3] - q2[3]
+    return result
+
+def rotation_matrix_to_euler_angles(R):
+    """
+    Convert a rotation matrix to Euler angles.
+
+    Args:
+    R (array): A 3x3 or 4x4 numpy array representing the rotation matrix.
+
+    Returns:
+    (roll, pitch, yaw): A tuple of Euler angles (in radians).
+    """
+    sy = np.sqrt(R[0, 0] * R[0, 0] +  R[1, 0] * R[1, 0])
+
+    singular = sy < 1e-6
+
+    if not singular:
+        x = np.arctan2(R[2, 1], R[2, 2])
+        y = np.arctan2(-R[2, 0], sy)
+        z = np.arctan2(R[1, 0], R[0, 0])
+    else:
+        x = np.arctan2(-R[1, 2], R[1, 1])
+        y = np.arctan2(-R[2, 0], sy)
+        z = 0
+
+    return np.rad2deg(x), np.rad2deg(y), np.rad2deg(z)
+
 # Main Function
 def main():
     pygame.init()
@@ -83,6 +128,31 @@ def main():
     ser = serial.Serial('COM3', 921600)  # Adjust your COM port and baud rate
 
     vertices, edges = init_cube()
+
+    # Calibrate the sensor
+    print("Calibrating... Please wait.")
+    initial_quaternions = []
+    for _ in range(100):
+        # Read quaternion data from serial
+        ser.reset_input_buffer()
+        data = ['0', '0']
+        while data[0] != '4097' and data[1] != 'nan':
+            line = ser.readline()
+            decoded_line = line.decode('utf-8').strip()
+            data = decoded_line.split(',')
+        try:
+            if data[0] == '4097':
+                data = data[1:]
+                q = [float(val) for val in data]
+                initial_quaternions.append(q)
+        except Exception as e:
+            print(f"Error: {e}")
+
+    # Averaging the quaternions
+    initial_orientation = np.mean(initial_quaternions, axis=0)
+
+    # while True:
+    #     print("Initial orientation: ", initial_orientation)
 
     while True:
         for event in pygame.event.get():
@@ -108,11 +178,24 @@ def main():
                 # data = decoded_line[1:].split(',')
                 print("data after removing top: " , data)
                 q = [float(val) for val in data]
+                # q = subtract_quaternion(q, initial_orientation)
                 rotation_matrix = quaternion_to_rotation_matrix(q)
+                rotation_matrix_intial = quaternion_to_rotation_matrix(initial_orientation)
+                #get euler angles
+                euler_angles = rotation_matrix_to_euler_angles(rotation_matrix)
+                euler_angles_initial = rotation_matrix_to_euler_angles(rotation_matrix_intial)
+                #subtract initial euler angles
+                euler_angles = np.subtract(euler_angles, euler_angles_initial)
+                print("Euler angles: ", euler_angles)
                 glLoadIdentity()
                 glScalef(0.5, 0.5, 0.5)  # Scale down the object; adjust the values as needed
                 glTranslatef(0.0, 0.0, 0)
-                glMultMatrixf(rotation_matrix)
+                # glMultMatrixf(rotation_matrix)
+                # Apply rotations
+                yaw, pitch, roll = euler_angles
+                glRotatef(yaw, 0, 1, 0)   # Rotate around Y-axis
+                glRotatef(pitch, 1, 0, 0) # Rotate around X-axis
+                glRotatef(roll, 0, 0, 1)  # Rotate around Z-axis
 
         except Exception as e:
             print(f"Error: {e}")

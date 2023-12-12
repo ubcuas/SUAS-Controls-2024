@@ -128,22 +128,19 @@ void DoKalman(){
   //update
   myKalmanFilter_inst.update(Z);
 
-  //get the state
-  MatrixXd X = myKalmanFilter_inst.getState();
-
   //print the data
   //SERIAL_PORT.print(0x4004);
   //SERIAL_PORT.print(",");
-  SERIAL_PORT.print(X(0,0));    //pos
-  SERIAL_PORT.print(",");
-  SERIAL_PORT.print(X(1,0));    //vel
-  SERIAL_PORT.print(",");
-  SERIAL_PORT.print(Alt_Baro, 6); //alt);  
 }
 
 void PrintSensorData(){
   // Print the data
   //SERIAL_PORT.print(0x4008);
+  //get the state
+  MatrixXd X = myKalmanFilter_inst.getState();
+  SERIAL_PORT.print(X(0,0));    //Kalman-pos
+  SERIAL_PORT.print(",");
+  SERIAL_PORT.print(X(1,0));    //Kalman-vel
   SERIAL_PORT.print(",");
   SERIAL_PORT.print(sensorData_inst.barometerData.Altitude - sensorData_inst.barometerData.AltitudeOffset, 6);
   SERIAL_PORT.print(",");
@@ -155,16 +152,24 @@ void PrintSensorData(){
   SERIAL_PORT.print(",");
   SERIAL_PORT.print(sensorData_inst.imuData.LinearAccel.v2 - sensorData_inst.imuData.LinearAccelOffset.v2, 6);
   SERIAL_PORT.print(",");
-  SERIAL_PORT.print(sensorData_inst.gpsData.Latitude, 6);
+  SERIAL_PORT.print(sensorData_inst.gpsData.Latitude, 10);
   SERIAL_PORT.print(",");
-  SERIAL_PORT.print(sensorData_inst.gpsData.Longitude, 6);
+  SERIAL_PORT.print(sensorData_inst.gpsData.Longitude, 10);
   SERIAL_PORT.print(",");
   SERIAL_PORT.print(sensorData_inst.gpsData.Altitude, 6);
   SERIAL_PORT.print(",");
   SERIAL_PORT.print(sensorData_inst.gpsData.lock? "LOCKED" : "NOT LOCKED");
   SERIAL_PORT.print(",");
   SERIAL_PORT.println(sensorData_inst.gpsData.satellites);
-
+  SERIAL_PORT.print(0x1001);
+  SERIAL_PORT.print(",");
+  SERIAL_PORT.print(sensorData_inst.imuData.Orientation.q0);
+  SERIAL_PORT.print(",");
+  SERIAL_PORT.print(sensorData_inst.imuData.Orientation.q1);
+  SERIAL_PORT.print(",");
+  SERIAL_PORT.print(sensorData_inst.imuData.Orientation.q2);
+  SERIAL_PORT.print(",");
+  SERIAL_PORT.println(sensorData_inst.imuData.Orientation.q3);
 }
 
 void DoCount(){

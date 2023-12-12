@@ -14,7 +14,7 @@ filename = r'C:\Users\nisch\OneDrive - UBC\UBC_UAS\2023\UAS-PPES\RecordedData\Da
 file = open(filename, 'w')
 
 # Write the header
-header = 'P_Pos, P_Vel, Alt_1, Altitude, Pressure, Acc_X, Acc_Y, Acc_Z\n'
+header = 'P_Pos, P_Vel, Altitude, Pressure, Acc_X, Acc_Y, Acc_Z, Latitude, Longitude, Altitude_GPS, LOCK, Satellites\n'
 file.write(header)
 
 # Read and record the data until keyboard interrupt
