@@ -15,9 +15,11 @@ TinyGPSPlus gps;
 //SoftwareSerial ss(RXPin, TXPin);
 #define ss Serial2
 
+int i = 0;
+unsigned long timestart = 0;
 void setup()
 {
-  Serial.begin(115200);
+  Serial.begin(912600);
   Serial2.begin(GPSBaud, SERIAL_8N1, RXPin, TXPin);
 
   Serial.println(F("DeviceExample.ino"));
@@ -25,6 +27,7 @@ void setup()
   Serial.print(F("Testing TinyGPSPlus library v. ")); Serial.println(TinyGPSPlus::libraryVersion());
   Serial.println(F("by Mikal Hart"));
   Serial.println();
+  timestart = millis();
 }
 
 void loop()
@@ -32,7 +35,15 @@ void loop()
   // This sketch displays information every time a new sentence is correctly encoded.
   while (ss.available() > 0)
     if (gps.encode(ss.read()))
-      displayInfo();
+      {
+        displayInfo();
+        i++;
+        if(i > 100){
+          Serial,printf("100 iterations of GPS done in: %d sec\n", millis() - timestart);
+          i = 0;
+          timestart = millis();
+        }
+      }
 
   if (millis() > 5000 && gps.charsProcessed() < 10)
   {

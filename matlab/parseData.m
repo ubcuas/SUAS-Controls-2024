@@ -12,6 +12,14 @@ function result =  parseData(samplingFrequency, filePath)
     Acc_Z = data.Acc_Z;
     P_Pos = data.P_Pos;
     P_Vel = data.P_Vel;
+    Latitude = data.Latitude;
+    Longitude = data.Longitude;
+    Altitude = data.Altitude;
+    q_w = data.q_w;
+    q_x = data.q_x;
+    q_y = data.q_y;
+    q_z = data.q_z;
+    Altitude_GPS = data.Altitude_GPS;
     % Alt_1 = data.Alt_1;
     Pressure = data.Pressure;
 
@@ -24,5 +32,5 @@ function result =  parseData(samplingFrequency, filePath)
 
 
     % Combine all the data into a single table (optional)
-    result = table(Time, Altitude, Acc_X, Acc_Y, Acc_Z, P_Pos, P_Vel, Pressure);  %add alt_1 if needed
+    result = table(Time, Altitude, Acc_X, Acc_Y, Acc_Z, P_Pos, P_Vel, Pressure, Latitude, Longitude, q_w, q_x, q_y, q_z, Altitude_GPS);  %add alt_1 if needed
 end

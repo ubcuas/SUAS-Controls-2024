@@ -3,11 +3,11 @@ close all;
 clear all;
 
 %load the data
-DataLocation = '../RecordedData/Dec_12_23_TestData_Sensor.csv';
-SampleRate = 55.0;
+DataLocation = '../RecordedData/All_Sensor_Data_stationary.csv';
+SampleRate = 57.0;
 Gravity = 9.809;
 RecordedData = parseData(SampleRate, DataLocation);
-SampleRate = 55.0;
+SampleRate = 57.0;
 P0 = mean(RecordedData.Pressure);
 
 %To visualize the DATA
@@ -20,10 +20,10 @@ NumStates = 2;
 NumMeasurements = 1;
 NumControlInputs = 1;
 Dt = 1/SampleRate;
-Acc_Z_stdev = 0.0080 * Gravity; %meters per second squared
-Barometer_stdev = 1.5; %meters
+Acc_Z_stdev = 0.158 * Gravity; %meters per second squared
+Barometer_stdev = 0.8; %meters
 Pressure_stdev = 2.0161;
-meanAccZ = mean(RecordedData.Acc_Z)*Gravity;
+meanAccZ = mean(RecordedData.Acc_Z)*Gravity*0;
 
 %State Transition Matrix -- Need to customize based on you system model
 F = [1 Dt;
@@ -34,10 +34,10 @@ G = [0.5 * Dt^2;
      Dt];
 
 %Process Noise Covariance Matrix -- Need to customize based on you system model
-Q = [0.25 * Dt^4 0.5 * Dt^3;
+Q_ = [0.25 * Dt^4 0.5 * Dt^3;
      0.5 * Dt^3 Dt^2];
 
-Q = Q * Acc_Z_stdev^2;
+Q = Q_ * Acc_Z_stdev^2;
 
 %Measurement Matrix -- Need to customize based on you system model
 H = [1 0];
@@ -70,15 +70,16 @@ ExtendedKalmanFilterResults = zeros(length(RecordedData.Time),NumStates);
 %Run the Kalman Filter
 for i = 1:length(RecordedData.Time)
     %predict the state
+    % Q = Q_ * pow2(Acc_Z_stdev)*pow2(RecordedData.Acc_Z(i)*Gravity);
     myKalmanFilter_inst.predict(RecordedData.Acc_Z(i) * Gravity - meanAccZ);
     myExtendedKalmanFilter_inst.predict(RecordedData.Acc_Z(i) * Gravity - meanAccZ);
     
     %update the state every 10th sample
-    if (mod(i,5) == 0)
-        myKalmanFilter_inst.update(RecordedData.Altitude(i));
-        myExtendedKalmanFilter_inst.update(RecordedData.Pressure(i));
-    end
-    % myKalmanFilter_inst.update(RecordedData.Altitude(i));
+    % if (mod(i,0) == 0)
+    %     myKalmanFilter_inst.update(RecordedData.Altitude(i));
+    %     myExtendedKalmanFilter_inst.update(RecordedData.Pressure(i));
+    % end
+    myKalmanFilter_inst.update(RecordedData.Altitude(i));
     
     %store the results
     KalmanFilterResults(i,:) = myKalmanFilter_inst.X';
@@ -86,12 +87,13 @@ for i = 1:length(RecordedData.Time)
 end
 
 % Plot Altitude and Velocity in Subplots
+% Follow the color scheme: Recorded Data: Blue, ESP KALMAN: Green, MATLAB KALMAN: Red/Black 
 figure(3);
 % Subplot for Altitude
 subplot(2,1,1); % Two rows, one column, first subplot
-plot(RecordedData.Time, RecordedData.Altitude, 'r');
+plot(RecordedData.Time, RecordedData.Altitude, 'b');
 hold on;
-plot(RecordedData.Time, KalmanFilterResults(:,1), 'b');
+plot(RecordedData.Time, KalmanFilterResults(:,1), 'r');
 plot(RecordedData.Time, RecordedData.P_Pos, 'g');
 % plot(RecordedData.Time, ExtendedKalmanFilterResults(:,1), 'k');
 hold off;
@@ -104,10 +106,10 @@ title('Altitude Estimation Results');
 subplot(2,1,2); % Two rows, one column, second subplot
 plot(RecordedData.Time, KalmanFilterResults(:,2), 'r');
 hold on
-% plot(RecordedData.Time, ExtendedKalmanFilterResults(:,2), 'k');
 plot(RecordedData.Time, RecordedData.P_Vel, 'g');
+% plot(RecordedData.Time, ExtendedKalmanFilterResults(:,2), 'k');
 hold off
 xlabel('Time (s)');
 ylabel('Velocity (m/s)');
-legend('Estimated-MATLAB(LKF)', 'Estimated-MATLAB(EKF)', 'Estimated-ESP');
+legend('Estimated-MATLAB(LKF)', 'Estimated-ESP', 'Estimated-MATLAB(EKF)');
 title('Velocity Estimation Results');

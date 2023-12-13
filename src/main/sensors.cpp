@@ -292,7 +292,7 @@ SENSORS_Status_t sensors::readIMUData(){
 
 SENSORS_Status_t sensors::CalibrateIMULinearAcceleration(){
     SENSORS_Status_t status = SENSORS_OK;
-    uint16_t numSamples = 100;
+    uint16_t numSamples = 1000;
     Vector sum{};
     for(uint16_t i = 0; i < numSamples; i++){
         if(readIMUData() != SENSORS_OK){
@@ -300,7 +300,7 @@ SENSORS_Status_t sensors::CalibrateIMULinearAcceleration(){
             return SENSORS_FAIL;
         }
         sum.add(sensorData.imuData.LinearAccel);
-        delay(20);
+        // delay(20);
     }
     sum.scale(1.0/(float)numSamples);
     sensorData.imuData.LinearAccelOffset.copy(sum);

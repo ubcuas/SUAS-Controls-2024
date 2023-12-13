@@ -113,7 +113,7 @@ void loop()
 
 void DoKalman(){
   //Remove the bias from both sensors.
-  double ACC_Z = sensorData_inst.imuData.LinearAccel.v2 - sensorData_inst.imuData.LinearAccelOffset.v2;  //obtained from the mean of the data
+  double ACC_Z = sensorData_inst.imuData.LinearAccel.v2 /*- sensorData_inst.imuData.LinearAccelOffset.v2*/;  //obtained from the mean of the data
   double Alt_Baro = sensorData_inst.barometerData.Altitude - sensorData_inst.barometerData.AltitudeOffset;
 
   //make them into matrices
@@ -146,11 +146,11 @@ void PrintSensorData(){
   SERIAL_PORT.print(",");
   SERIAL_PORT.print(sensorData_inst.barometerData.Pressure/100, 6);
   SERIAL_PORT.print(",");
-  SERIAL_PORT.print(sensorData_inst.imuData.LinearAccel.v0 - sensorData_inst.imuData.LinearAccelOffset.v0, 6);
+  SERIAL_PORT.print(sensorData_inst.imuData.LinearAccel.v0 /*- sensorData_inst.imuData.LinearAccelOffset.v0*/, 6);
   SERIAL_PORT.print(",");
-  SERIAL_PORT.print(sensorData_inst.imuData.LinearAccel.v1 - sensorData_inst.imuData.LinearAccelOffset.v1, 6);
+  SERIAL_PORT.print(sensorData_inst.imuData.LinearAccel.v1 /*- sensorData_inst.imuData.LinearAccelOffset.v1*/, 6);
   SERIAL_PORT.print(",");
-  SERIAL_PORT.print(sensorData_inst.imuData.LinearAccel.v2 - sensorData_inst.imuData.LinearAccelOffset.v2, 6);
+  SERIAL_PORT.print(sensorData_inst.imuData.LinearAccel.v2 /*- sensorData_inst.imuData.LinearAccelOffset.v2*/, 6);
   SERIAL_PORT.print(",");
   SERIAL_PORT.print(sensorData_inst.gpsData.Latitude, 10);
   SERIAL_PORT.print(",");
@@ -160,8 +160,8 @@ void PrintSensorData(){
   SERIAL_PORT.print(",");
   SERIAL_PORT.print(sensorData_inst.gpsData.lock? "LOCKED" : "NOT LOCKED");
   SERIAL_PORT.print(",");
-  SERIAL_PORT.println(sensorData_inst.gpsData.satellites);
-  SERIAL_PORT.print(0x1001);
+  SERIAL_PORT.print(sensorData_inst.gpsData.satellites);
+  // SERIAL_PORT.print(0x1001);
   SERIAL_PORT.print(",");
   SERIAL_PORT.print(sensorData_inst.imuData.Orientation.q0);
   SERIAL_PORT.print(",");
@@ -173,7 +173,7 @@ void PrintSensorData(){
 }
 
 void DoCount(){
-  if(i > 100){
+  if(i > 1000){
     i = 0;
     SERIAL_PORT.printf("100 iterations done in: %d mS\n", (int)(millis()-timeStart));
     delay(5000);

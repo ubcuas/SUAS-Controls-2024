@@ -33,7 +33,7 @@
 
 #include <Adafruit_BMP280.h>
 
-#define WANT2TIME true
+#define WANT2TIME false
 
 #define SERIAL_PORT Serial
 
@@ -229,14 +229,14 @@ void loop()
       double Ay = data.Raw_Accel.Data.Y/32768.0 *4.00;
       double Az = data.Raw_Accel.Data.Z/32768.0 *4.00;
       vector.set(Ax, Ay, Az);
-      // SERIAL_PORT.print(0x1002);
-      // SERIAL_PORT.print(F(","));
-      // SERIAL_PORT.print(Ax, 3);
-      // SERIAL_PORT.print(F(","));
-      // SERIAL_PORT.print(Ay, 3);
-      // SERIAL_PORT.print(F(","));
-      // SERIAL_PORT.print(Az, 3);
-      // SERIAL_PORT.print(F("\n"));
+      SERIAL_PORT.print(0x1002);
+      SERIAL_PORT.print(F(","));
+      SERIAL_PORT.print(Ax, 3);
+      SERIAL_PORT.print(F(","));
+      SERIAL_PORT.print(Ay, 3);
+      SERIAL_PORT.print(F(","));
+      SERIAL_PORT.print(Az, 3);
+      SERIAL_PORT.print(F("\n"));
     }
 
     if ((data.header & DMP_header_bitmap_Quat9) > 0) // If we get Quat9
@@ -289,7 +289,14 @@ void loop()
       SERIAL_PORT.print(F(","));
       SERIAL_PORT.print(acc_ref.v1, 3);
       SERIAL_PORT.print(F(","));
-      SERIAL_PORT.print(acc_ref.v2-1.0, 3);
+      SERIAL_PORT.println(acc_ref.v2-1.0, 3);
+      SERIAL_PORT.print(0x1005);
+      SERIAL_PORT.print(F(","));
+      SERIAL_PORT.print(acc_ref.v0, 3);
+      SERIAL_PORT.print(F(","));
+      SERIAL_PORT.print(acc_ref.v1, 3);
+      SERIAL_PORT.print(F(","));
+      SERIAL_PORT.print(acc_ref.v2, 3);
       SERIAL_PORT.print(F("\n"));
 
     //filter the acceleration
@@ -333,7 +340,7 @@ void loop()
   float pressure = bmp.readPressure();
   float altitude = bmp.readAltitude(1026.9);
 
-  SERIAL_PORT.printf("Temp(degC): %f\nPressure(Pa): %f\nAltitude(m): %f\n", temp, pressure, altitude);
+  // SERIAL_PORT.printf("Temp(degC): %f\nPressure(Pa): %f\nAltitude(m): %f\n", temp, pressure, altitude);
 
   if((loop_count > 999) && WANT2TIME){
     loop_count = 0;
