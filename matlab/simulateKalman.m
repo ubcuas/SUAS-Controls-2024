@@ -79,7 +79,7 @@ for i = 1:length(RecordedData.Time)
     %     myKalmanFilter_inst.update(RecordedData.Altitude(i));
     %     myExtendedKalmanFilter_inst.update(RecordedData.Pressure(i));
     % end
-    myKalmanFilter_inst.update(RecordedData.Altitude(i));
+    myKalmanFilter_inst.update(RecordedData.Altitude(i)+85.0);
     
     %store the results
     KalmanFilterResults(i,:) = myKalmanFilter_inst.X';
