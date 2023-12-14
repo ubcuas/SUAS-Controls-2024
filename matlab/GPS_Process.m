@@ -1,7 +1,7 @@
 close all
 clear all
 % Define the file path
-file_path = '../RecordedData/All_Sensor_Data_MOVEING.csv'; % Replace with your file path
+file_path = '../RecordedData/All_SensorData_Moving_in_BUS.csv'; % Replace with your file path
 
 %load the data
 DataLocation = file_path;
@@ -9,6 +9,15 @@ SampleRate = 57.0;
 Gravity = 9.809;
 RecordedData = parseData(SampleRate, DataLocation);
 RecordedData = rmmissing(RecordedData);
+% If abs of Latitdue and longitude is less than 10 then remove the row
+RecordedData = RecordedData(abs(RecordedData.Latitude) > 10, :);
+RecordedData = RecordedData(abs(RecordedData.Longitude) > 10, :);
+% if any acceleration is greater than 10.0 then remove the row
+RecordedData = RecordedData(abs(RecordedData.Acc_X) < 10, :);
+RecordedData = RecordedData(abs(RecordedData.Acc_Y) < 10, :);
+RecordedData = RecordedData(abs(RecordedData.Acc_Z) < 10, :);
+
+
 Data_Length = height(RecordedData);
 SampleRate = 57.0;
 P0 = mean(RecordedData.Pressure);
@@ -23,9 +32,9 @@ NumStates = 2;
 NumMeasurements = 1;
 NumControlInputs = 1;
 Dt = 1/SampleRate;
-Acc_X_stdev = 1.18 * Gravity; %meters per second squared
-Acc_Y_stdev = 1.18 * Gravity; %meters per second squared
-Acc_Z_stdev = 1.4 * Gravity; %meters per second squared
+Acc_X_stdev = 0.5 * Gravity; %meters per second squared
+Acc_Y_stdev = 0.5 * Gravity; %meters per second squared
+Acc_Z_stdev = 0.8 * Gravity; %meters per second squared
 Barometer_stdev = 1.466; %meters
 Pressure_stdev = 2.0161;
 meanAccX = mean(RecordedData.Acc_X)*Gravity*0;
@@ -210,7 +219,7 @@ plot(RecordedData.Time, KalmanFilterResults_Z(:,1), 'r');
 hold off;
 xlabel('Time (s)');
 ylabel('ZPos (m)');
-legend('Measured (GPS)', 'Estimated-MATLAB(LKF)');
+legend('Measured (Barometer)', 'Estimated-MATLAB(LKF)');
 title('ZPos Estimation Results');
 
 % Subplot for Velocity
