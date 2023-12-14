@@ -1,26 +1,26 @@
-function Animate3D(RecordedData)
+function Animate3D(X, Y, Z, delay)
 % Extract acceleration data
-Acc_X = RecordedData.Acc_X;
-Acc_Y = RecordedData.Acc_Y;
-Acc_Z = RecordedData.Acc_Z;
+Acc_X = X;
+Acc_Y = Y;
+Acc_Z = Z;
 
 numPoints = length(Acc_Z);
 
 %getting delay
-delay = RecordedData.Time(2) - RecordedData.Time(1);
+% delay = RecordedDataTime(2) - RecordedData.Time(1);
 % Assuming you have Acc_X, Acc_Y, Acc_Z, and numPoints
-N = 20; % Number of points to display in the trail
+N = 200; % Number of points to display in the trail
 
 % Prepare the figure
 figure;
 grid on;
-xlabel('Acc_X');
-ylabel('Acc_Y');
-zlabel('Acc_Z');
+xlabel('X');
+ylabel('Y');
+zlabel('Z');
 title('3D Movement Animation');
 xlim([min(Acc_X) max(Acc_X)]);
 ylim([min(Acc_Y) max(Acc_Y)]);
-zlim([min(Acc_Z) max(Acc_Z)]);
+zlim([5*min(Acc_Z) 5*max(Acc_Z)]);
 view(3);
 hold on;
 
@@ -41,10 +41,10 @@ for k = 1:numPoints
     set(hLine, 'XData', Acc_X(idxStart:k), 'YData', Acc_Y(idxStart:k), 'ZData', Acc_Z(idxStart:k));
 
     % Update text
-    pointInfo = sprintf('Time: %.2f\nX: %.2f\nY: %.2f\nZ: %.2f', k, Acc_X(k), Acc_Y(k), Acc_Z(k));
+    pointInfo = sprintf('Time: %.2f\nX: %.2f\nY: %.2f\nZ: %.2f', k*delay, Acc_X(k), Acc_Y(k), Acc_Z(k));
     set(hText, 'String', pointInfo, 'Position', [Acc_X(k) Acc_Y(k) Acc_Z(k)]);
 
     drawnow;
-    pause(delay); % Adjust as needed
+    pause(delay/3.0); % Adjust as needed
 end
 end

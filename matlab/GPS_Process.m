@@ -1,13 +1,14 @@
 close all
 clear all
 % Define the file path
-file_path = '../RecordedData/SensorDataTRIUMFCOURTYARD.csv'; % Replace with your file path
+file_path = '../RecordedData/All_Sensor_Data_MOVEING.csv'; % Replace with your file path
 
 %load the data
 DataLocation = file_path;
 SampleRate = 57.0;
 Gravity = 9.809;
 RecordedData = parseData(SampleRate, DataLocation);
+RecordedData = rmmissing(RecordedData);
 Data_Length = height(RecordedData);
 SampleRate = 57.0;
 P0 = mean(RecordedData.Pressure);
@@ -22,11 +23,15 @@ NumStates = 2;
 NumMeasurements = 1;
 NumControlInputs = 1;
 Dt = 1/SampleRate;
-Acc_Z_stdev = 0.088 * Gravity; %meters per second squared
-Barometer_stdev = 0.8; %meters
+Acc_X_stdev = 1.18 * Gravity; %meters per second squared
+Acc_Y_stdev = 1.18 * Gravity; %meters per second squared
+Acc_Z_stdev = 1.4 * Gravity; %meters per second squared
+Barometer_stdev = 1.466; %meters
 Pressure_stdev = 2.0161;
+meanAccX = mean(RecordedData.Acc_X)*Gravity*0;
+meanAccY = mean(RecordedData.Acc_Y)*Gravity*0;
 meanAccZ = mean(RecordedData.Acc_Z)*Gravity*0;
-GPS_stdev = 5.5; %m
+GPS_stdev = 5.0; %m
 
 %State Transition Matrix -- Need to customize based on you system model
 F = [1 Dt;
@@ -41,6 +46,9 @@ Q_ = [0.25 * Dt^4 0.5 * Dt^3;
      0.5 * Dt^3 Dt^2];
 
 Q = Q_ * Acc_Z_stdev^2;
+Q_X = Q_ * Acc_X_stdev^2;
+Q_Y = Q_ * Acc_Y_stdev^2;
+Q_Z = Q_ * Acc_Z_stdev^2;
 
 %Measurement Matrix -- Need to customize based on you system model
 H = [1 0];
@@ -62,9 +70,9 @@ myKalmanFilter_inst_Y = KalmanFilter(NumStates, NumMeasurements, NumControlInput
 myKalmanFilter_inst_Z = KalmanFilter(NumStates, NumMeasurements, NumControlInputs, Dt);
 
 %initialize the object
-myKalmanFilter_inst_X.initializeMatrices(F,G,Q,H,R,W,P);
-myKalmanFilter_inst_Y.initializeMatrices(F,G,Q,H,R,W,P);
-myKalmanFilter_inst_Z.initializeMatrices(F,G,Q,H,R,W,P);
+myKalmanFilter_inst_X.initializeMatrices(F,G,Q_X,H,R,W,P);
+myKalmanFilter_inst_Y.initializeMatrices(F,G,Q_Y,H,R,W,P);
+myKalmanFilter_inst_Z.initializeMatrices(F,G,Q_Z,H,R_,W,P);
 
 %Make a vector to store the results
 KalmanFilterResults_X = zeros(length(RecordedData.Time),NumStates);
@@ -108,8 +116,8 @@ end
 for i = 1:length(RecordedData.Time)
     %predict the state
     % Q = Q_ * pow2(Acc_Z_stdev)*pow2(RecordedData.Acc_Z(i)*Gravity);
-    myKalmanFilter_inst_X.predict(RecordedData.Acc_X(i) * Gravity - meanAccZ);
-    myKalmanFilter_inst_Y.predict(RecordedData.Acc_Y(i) * Gravity - meanAccZ);
+    myKalmanFilter_inst_X.predict(RecordedData.Acc_Y(i) * Gravity - meanAccX);
+    myKalmanFilter_inst_Y.predict(RecordedData.Acc_X(i) * Gravity - meanAccY);
     myKalmanFilter_inst_Z.predict(RecordedData.Acc_Z(i) * Gravity - meanAccZ);
 
     %update the state every 10th sample
@@ -118,8 +126,8 @@ for i = 1:length(RecordedData.Time)
     %     myExtendedKalmanFilter_inst.update(RecordedData.Pressure(i));
     % end
     
-    myKalmanFilter_inst_Z.update(Z_pos(i));
-    % myKalmanFilter_inst_Z.update(RecordedData.Altitude(i));
+    % myKalmanFilter_inst_Z.update(Z_pos(i));
+    myKalmanFilter_inst_Z.update(RecordedData.Altitude(i));
     myKalmanFilter_inst_X.update(X_pos(i));
     myKalmanFilter_inst_Y.update(Y_pos(i));
     
@@ -131,7 +139,7 @@ end
 
 % 3D plot of the path
 figure;
-plot3(X_pos, Y_pos, Z_pos, 'o-');
+plot3(X_pos, Y_pos, RecordedData.Altitude, 'o-');
 hold on
 plot3(KalmanFilterResults_X(:,1), KalmanFilterResults_Y(:,1), KalmanFilterResults_Z(:,1), 'o-');
 xlabel('X Position (m)');
@@ -140,7 +148,7 @@ zlabel('Z Position (m)');
 title('3D Path of RAW GPS Data vs Kalman Estimate');
 grid on;
 % Set axis limits
-lim_Size = 20; %meters
+lim_Size = 50; %meters
 xlim([-1*lim_Size, lim_Size]); % Extend limits by 10 meters on each side for X
 ylim([-1*lim_Size, lim_Size]); % Extend limits by 10 meters on each side for Y
 zlim([-1*lim_Size, lim_Size]); % Extend limits by 10 meters on each side for Z
@@ -196,7 +204,7 @@ title('Velocity Estimation Results');
 figure;
 % Subplot for Z_POS
 subplot(2,1,1); % Two rows, one column, first subplot
-plot(RecordedData.Time, Z_pos, 'b');
+plot(RecordedData.Time, RecordedData.Altitude, 'b');
 hold on;
 plot(RecordedData.Time, KalmanFilterResults_Z(:,1), 'r');
 hold off;
@@ -209,10 +217,13 @@ title('ZPos Estimation Results');
 subplot(2,1,2); % Two rows, one column, second subplot
 plot(RecordedData.Time, KalmanFilterResults_Z(:,2), 'r');
 hold on
-plot(RecordedData.Time, RecordedData.P_Vel, 'g');
+% plot(RecordedData.Time, RecordedData.P_Vel, 'g');
 % plot(RecordedData.Time, ExtendedKalmanFilterResults(:,2), 'k');
 hold off
 xlabel('Time (s)');
 ylabel('Velocity (m/s)');
 legend('Estimated-MATLAB(LKF)', 'Estimated ESP (Barometer)');
 title('Velocity Estimation Results');
+
+%to view the data in motion
+% Animate3D(KalmanFilterResults_X(:,1), KalmanFilterResults_Y(:,1), KalmanFilterResults_Z(:,1), 1/SampleRate)
