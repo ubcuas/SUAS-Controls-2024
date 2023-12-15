@@ -30,7 +30,7 @@ using namespace Eigen;
 
 class KalmanFilter {
 public:
-    KalmanFilter(uint8_t nX, uint8_t nZ, uint8_t nU, double dt);
+    KalmanFilter(uint8_t nX, uint8_t nZ, uint8_t nU, double dt, double std_U, double std_Z);
     ~KalmanFilter() {
         // Destructor
     }
@@ -44,6 +44,8 @@ private:
     uint8_t nZ;     //number of measurements
     uint8_t nU;     //number of control inputs
     double dt;      //time step
+    double std_U;   //standard deviation of control input
+    double std_Z;   //standard deviation of measurement
     MatrixXd X;     //state vector
     MatrixXd Z;     //measurement vector
     MatrixXd U;     //control vector

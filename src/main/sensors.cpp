@@ -258,7 +258,9 @@ SENSORS_Status_t sensors::readIMUData(){
                 double Ax = data.Raw_Accel.Data.X/32768.0 *4.00;
                 double Ay = data.Raw_Accel.Data.Y/32768.0 *4.00;
                 double Az = data.Raw_Accel.Data.Z/32768.0 *4.00;
-                sensorData.imuData.RawAccel.set(Ax, Ay, Az);
+                if(!(isnan(Ax) || isnan(Ay) || isnan(Az))){
+                  sensorData.imuData.RawAccel.set(Ax, Ay, Az);
+                }
                 // SERIAL_PORT.print(0x1002);
                 // SERIAL_PORT.print(F(","));
                 // SERIAL_PORT.print(Ax, 3);
@@ -284,8 +286,9 @@ SENSORS_Status_t sensors::readIMUData(){
             double q3 = ((double)data.Quat9.Data.Q3) / 1073741824.0; // Convert to double. Divide by 2^30
             double q0 = sqrt(1.0 - ((q1 * q1) + (q2 * q2) + (q3 * q3)));
 
-            sensorData.imuData.Orientation.set(q0,q1,q2,q3);
-
+            if(!(isnan(q0) || isnan(q1) || isnan(q2) || isnan(q3))){
+              sensorData.imuData.Orientation.set(q0,q1,q2,q3);
+            }
             // SERIAL_PORT.print(0x1001);
             // SERIAL_PORT.print(F(","));
             // SERIAL_PORT.print(q0, 3);
@@ -350,11 +353,14 @@ SENSORS_Status_t sensors::CalibrateBarometerAltitude(){
 SENSORS_Status_t sensors::readBarometerData(){
     SENSORS_Status_t status = SENSORS_OK;
     // Read the temperature
-    sensorData.barometerData.Temperature = bmp.readTemperature();
+    float temperature = bmp.readTemperature();
+    sensorData.barometerData.Temperature = isnan(temperature)?sensorData.barometerData.Temperature: temperature;
     // Read the pressure
-    sensorData.barometerData.Pressure = bmp.readPressure();
+    float pressure = bmp.readPressure();
+    sensorData.barometerData.Pressure = isnan(pressure)?sensorData.barometerData.Pressure: pressure;
     // Read the altitude
-    sensorData.barometerData.Altitude = bmp.readAltitude(SEALEVELPRESSURE_HPA);
+    float altitude = bmp.readAltitude(SEALEVELPRESSURE_HPA);
+    sensorData.barometerData.Altitude = isnan(altitude)? sensorData.barometerData.Altitude: altitude;
     return status;
 }
 

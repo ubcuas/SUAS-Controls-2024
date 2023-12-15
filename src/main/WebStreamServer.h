@@ -60,7 +60,7 @@ const char html_page[] PROGMEM = R"rawliteral(
                 const data = event.data;
                 document.getElementById('dataDisplay').innerText = data;
                 if (isRecording) {
-                    recordedData += data + '\n';
+                    recordedData += data;
                 }
             }
 

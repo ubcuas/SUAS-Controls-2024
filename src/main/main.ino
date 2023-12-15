@@ -9,15 +9,22 @@
 #include "kalmanfilter.h"
 #include "WebStreamServer.h"
 
-#define ACQUIRE_RATE 55 //Hz
+#define ACQUIRE_RATE 57.0 //Hz
 #define DELTA_T (1.0f / ACQUIRE_RATE) //seconds
 #define NUM_STATES 2
 #define NUM_MEASUREMENTS 1
 #define NUM_CONTROL_INPUTS 1
 
+//Sensor Noise Parameters
+#define ACC_X_STD 0.03 * GRAVITY
+#define ACC_Y_STD 0.03 * GRAVITY
+#define ACC_Z_STD 0.05 * GRAVITY
+#define BARO_ALT_STD 1.466 //meters
+#define GPS_POS_STD 2.5 //meters
+
 Sensors::sensors mySensor_inst;
 Sensors::sensorData_t sensorData_inst;
-KalmanFilter myKalmanFilter_inst(NUM_STATES, NUM_MEASUREMENTS, NUM_CONTROL_INPUTS, DELTA_T);
+KalmanFilter myKalmanFilter_inst(NUM_STATES, NUM_MEASUREMENTS, NUM_CONTROL_INPUTS, DELTA_T, ACC_Z_STD, BARO_ALT_STD);
 WebStreamServer webStreamServer_inst;
 
 //redeclare the kalman filter initialize function
@@ -131,6 +138,12 @@ void DoKalman(){
   //update
   myKalmanFilter_inst.update(Z);
 
+  //incase X is not a number reset the filter
+  if(isnan(myKalmanFilter_inst.getState()(0,0)) || isnan(myKalmanFilter_inst.getState()(1,0))){
+    //reset the filter
+    myKalmanFilter_inst.initialize();
+  }
+
   //print the data
   //SERIAL_PORT.print(0x4004);
   //SERIAL_PORT.print(",");
@@ -143,7 +156,7 @@ void PrintSensorData(){
   //SERIAL_PORT.print(0x4008);
   //get the state
   MatrixXd X = myKalmanFilter_inst.getState();
-  snprintf(buffer, sizeof(buffer), "%lf,%lf,%.6lf,%.6lf,%.6lf,%.6lf,%.6lf,%.10lf,%.10lf,%.6lf,%d,%d,%.3lf,%.3lf,%.3lf,%.3lf\n", 
+  snprintf(buffer, sizeof(buffer), "%.2lf,%.2lf,%.2lf,%.3lf,%.6lf,%.6lf,%.6lf,%.6lf,%.6lf,%.2lf,%d,%d,%.3lf,%.3lf,%.3lf,%.3lf\n", 
     X(0,0),    //Kalman-pos
     X(1,0),    //Kalman-vel
     sensorData_inst.barometerData.Altitude - sensorData_inst.barometerData.AltitudeOffset,

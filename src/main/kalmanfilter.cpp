@@ -25,12 +25,14 @@
     nU: number of control inputs
     dt: time step
 */
-KalmanFilter::KalmanFilter(uint8_t nX, uint8_t nZ, uint8_t nU, double dt) {
+KalmanFilter::KalmanFilter(uint8_t nX, uint8_t nZ, uint8_t nU, double dt, double std_U, double std_Z) {
         // Constructor
         this->nX = nX;
         this->nZ = nZ;
         this->nU = nU;
         this->dt = dt;
+        this->std_U = std_U;
+        this->std_Z = std_Z;
 
         // Initialize the vectors and matrices
         X = MatrixXd::Zero(nX, 1);
@@ -65,16 +67,18 @@ void KalmanFilter::initialize(){
     Q << 0.25*dt*dt*dt*dt, 0.5*dt*dt*dt,
          0.5*dt*dt*dt, dt*dt;
     //add the accelerometer stddev
-    double gravity = 9.809;
-    double acc_stddev = 0.0037 * gravity;
-    Q = Q * acc_stddev * acc_stddev;
+    // double gravity = 9.809;
+    // double acc_stddev = 0.05 * gravity;
+    //Q = Q * acc_stddev * acc_stddev;
+    Q = Q * std_U * std_U;
 
     // Initialize the measurement matrix
     H << 1, 0;
 
     // Initialize the measurement noise covariance matrix
-    double baro_stddev = 1.1466;
-    R << baro_stddev * baro_stddev; //altitude barmeter stddev
+    //double baro_stddev = 1.1466;
+    // R << baro_stddev * baro_stddev; //altitude barmeter stddev
+    R << std_Z * std_Z;
 
     // Initialize the process noise matrix
     W << 0.5*dt*dt,
