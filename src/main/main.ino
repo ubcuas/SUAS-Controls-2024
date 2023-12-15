@@ -7,6 +7,7 @@
 #include <Arduino.h>
 #include "sensors.h"
 #include "kalmanfilter.h"
+#include "WebStreamServer.h"
 
 #define ACQUIRE_RATE 55 //Hz
 #define DELTA_T (1.0f / ACQUIRE_RATE) //seconds
@@ -17,6 +18,7 @@
 Sensors::sensors mySensor_inst;
 Sensors::sensorData_t sensorData_inst;
 KalmanFilter myKalmanFilter_inst(NUM_STATES, NUM_MEASUREMENTS, NUM_CONTROL_INPUTS, DELTA_T);
+WebStreamServer webStreamServer_inst;
 
 //redeclare the kalman filter initialize function
 // void KalmanFilter::initialize(){
@@ -63,6 +65,7 @@ void DoCount();
 void setup()
 {
   SERIAL_PORT.begin(921600); // Start the serial console
+  webStreamServer_inst.init();
   
   // Initialize the Sensors
   if(mySensor_inst.init() != Sensors::SENSORS_OK){
@@ -134,10 +137,50 @@ void DoKalman(){
 }
 
 void PrintSensorData(){
+
+  char buffer[500];
   // Print the data
   //SERIAL_PORT.print(0x4008);
   //get the state
   MatrixXd X = myKalmanFilter_inst.getState();
+  snprintf(buffer, sizeof(buffer), "%lf,%lf,%.6lf,%.6lf,%.6lf,%.6lf,%.6lf,%.10lf,%.10lf,%.6lf,%d,%d,%.3lf,%.3lf,%.3lf,%.3lf\n", 
+    X(0,0),    //Kalman-pos
+    X(1,0),    //Kalman-vel
+    sensorData_inst.barometerData.Altitude - sensorData_inst.barometerData.AltitudeOffset,
+    sensorData_inst.barometerData.Pressure/100,
+    sensorData_inst.imuData.LinearAccel.v0 /*- sensorData_inst.imuData.LinearAccelOffset.v0*/, 
+    sensorData_inst.imuData.LinearAccel.v1 /*- sensorData_inst.imuData.LinearAccelOffset.v1*/, 
+    sensorData_inst.imuData.LinearAccel.v2 /*- sensorData_inst.imuData.LinearAccelOffset.v2*/, 
+    sensorData_inst.gpsData.Latitude, 
+    sensorData_inst.gpsData.Longitude, 
+    sensorData_inst.gpsData.Altitude, 
+    sensorData_inst.gpsData.lock? 1 : 0, 
+    sensorData_inst.gpsData.satellites, 
+    sensorData_inst.imuData.Orientation.q0, 
+    sensorData_inst.imuData.Orientation.q1, 
+    sensorData_inst.imuData.Orientation.q2, 
+    sensorData_inst.imuData.Orientation.q3);
+  // Send the data to all connected WebSocket clients
+  if(webStreamServer_inst.send(buffer) == WebStreamServer::SUCCESS){
+    //SERIAL_PORT.println(mycounter);
+    //mycounter++;
+  }
+  SERIAL_PORT.print(buffer);
+}
+
+void DoCount(){
+  if(i > 1000){
+    i = 0;
+    SERIAL_PORT.printf("100 iterations done in: %d mS\n", (int)(millis()-timeStart));
+    delay(5000);
+    timeStart = millis();
+  }
+  else{
+    i++;
+  }
+}
+
+void OLD_PRINT(){
   SERIAL_PORT.print(X(0,0));    //Kalman-pos
   SERIAL_PORT.print(",");
   SERIAL_PORT.print(X(1,0));    //Kalman-vel
@@ -170,16 +213,4 @@ void PrintSensorData(){
   SERIAL_PORT.print(sensorData_inst.imuData.Orientation.q2);
   SERIAL_PORT.print(",");
   SERIAL_PORT.println(sensorData_inst.imuData.Orientation.q3);
-}
-
-void DoCount(){
-  if(i > 1000){
-    i = 0;
-    SERIAL_PORT.printf("100 iterations done in: %d mS\n", (int)(millis()-timeStart));
-    delay(5000);
-    timeStart = millis();
-  }
-  else{
-    i++;
-  }
 }
