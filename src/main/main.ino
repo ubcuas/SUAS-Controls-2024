@@ -181,6 +181,7 @@ void DoCount(){
 }
 
 void OLD_PRINT(){
+  MatrixXd X = myKalmanFilter_inst.getState();
   SERIAL_PORT.print(X(0,0));    //Kalman-pos
   SERIAL_PORT.print(",");
   SERIAL_PORT.print(X(1,0));    //Kalman-vel
