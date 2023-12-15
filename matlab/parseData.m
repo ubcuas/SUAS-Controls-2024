@@ -3,7 +3,7 @@ function result =  parseData(samplingFrequency, filePath)
     data = readtable(filePath);
 
     %remove the row with NaN
-    % data = rmmissing(data);
+    data = rmmissing(data);
 
     % Extract columns for Altitude, Acc_X, Acc_Y, and Acc_Z
     Altitude = data.Altitude;

@@ -3,7 +3,7 @@ close all;
 clear all;
 
 %load the data
-DataLocation = '../RecordedData/UP_HOLD_DOWN_Bias_Added.csv';
+DataLocation = '../RecordedData/WebRecordedData.csv';
 SampleRate = 57.0;
 Gravity = 9.809;
 RecordedData = parseData(SampleRate, DataLocation);
