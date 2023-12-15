@@ -84,7 +84,7 @@ SENSORS_Status_t sensors::initSensorDataStruct(){
     sensorData.imuData.Orientation = Quaternion(0.0, 0.0, 0.0, 0.0);
     sensorData.imuData.LinearAccel = Vector(0.0, 0.0, 0.0);
     sensorData.imuData.LinearAccelOffset = Vector(0.0, 0.0, 0.0);
-
+    
     // Initialize the Barometer data
     sensorData.barometerData.Temperature = 0.0;
     sensorData.barometerData.Pressure = 0.0;
@@ -151,7 +151,35 @@ SENSORS_Status_t sensors::initIMU(){
         status = SENSORS_FAIL;
         return status;
     }
-
+    //Configure the IMU Bias if available
+    if(!EEPROM.begin(128)){
+      SERIAL_PORT.println(F("EEPROM.begin failed! Bias Save and Restore not possible"));
+    }
+    EEPROM.get(0, sensorData.imuData.IMUDmpBias); //read the bias if stored
+    if(isBiasStoreValid(&sensorData.imuData.IMUDmpBias)){
+      SERIAL_PORT.println(F("Bias data in EEPROM is valid. Restoring it..."));
+      success &= (imu.setBiasGyroX(sensorData.imuData.IMUDmpBias.biasGyroX) == ICM_20948_Stat_Ok);
+      success &= (imu.setBiasGyroY(sensorData.imuData.IMUDmpBias.biasGyroY) == ICM_20948_Stat_Ok);
+      success &= (imu.setBiasGyroZ(sensorData.imuData.IMUDmpBias.biasGyroZ) == ICM_20948_Stat_Ok);
+      success &= (imu.setBiasAccelX(sensorData.imuData.IMUDmpBias.biasAccelX) == ICM_20948_Stat_Ok);
+      success &= (imu.setBiasAccelY(sensorData.imuData.IMUDmpBias.biasAccelY) == ICM_20948_Stat_Ok);
+      success &= (imu.setBiasAccelZ(sensorData.imuData.IMUDmpBias.biasAccelZ) == ICM_20948_Stat_Ok);
+      success &= (imu.setBiasCPassX(sensorData.imuData.IMUDmpBias.biasCPassX) == ICM_20948_Stat_Ok);
+      success &= (imu.setBiasCPassY(sensorData.imuData.IMUDmpBias.biasCPassY) == ICM_20948_Stat_Ok);
+      success &= (imu.setBiasCPassZ(sensorData.imuData.IMUDmpBias.biasCPassZ) == ICM_20948_Stat_Ok);
+      if (success)
+      {
+        SERIAL_PORT.println(F("Biases restored."));
+        printBiases(&sensorData.imuData.IMUDmpBias);
+        sensorData.imuData.imuBiasFoundinEEPROM = true;
+        delay(2000);
+      }
+      else{
+        SERIAL_PORT.println(F("Bias restore failed!"));
+        sensorData.imuData.imuBiasFoundinEEPROM = false;
+        delay(2000);
+      }
+    }
     SERIAL_PORT.println("IMU init successful");
     return status;
 }
@@ -283,7 +311,7 @@ SENSORS_Status_t sensors::readIMUData(){
     // Read the linear acceleration
     Vector accRef{};
     rotate_vect_by_quat_R(sensorData.imuData.RawAccel, sensorData.imuData.Orientation, accRef);
-    accRef.add(Vector(0.0, 0.0, -1.0));
+    accRef.add(Vector(0.0, 0.0, -1.0057));
     //copy the data to the sensorData struct
     sensorData.imuData.LinearAccel.copy(accRef);
 
@@ -360,4 +388,58 @@ void sensors::PrintGPSData(){
     else{
         SERIAL_PORT.println(F("No GPS lock"));
     }
+}
+
+void sensors::updateBiasStoreSum(biasStore *store){
+  int32_t sum = store->header;
+  sum += store->biasGyroX;
+  sum += store->biasGyroY;
+  sum += store->biasGyroZ;
+  sum += store->biasAccelX;
+  sum += store->biasAccelY;
+  sum += store->biasAccelZ;
+  sum += store->biasCPassX;
+  sum += store->biasCPassY;
+  sum += store->biasCPassZ;
+  store->sum = sum;
+}
+
+bool sensors::isBiasStoreValid(biasStore *store){
+  int32_t sum = store->header;
+
+  if (sum != 0x42)
+    return false;
+
+  sum += store->biasGyroX;
+  sum += store->biasGyroY;
+  sum += store->biasGyroZ;
+  sum += store->biasAccelX;
+  sum += store->biasAccelY;
+  sum += store->biasAccelZ;
+  sum += store->biasCPassX;
+  sum += store->biasCPassY;
+  sum += store->biasCPassZ;
+
+  return (store->sum == sum);
+}
+void sensors::printBiases(biasStore *store){
+  SERIAL_PORT.print(F("Gyro X: "));
+  SERIAL_PORT.print(store->biasGyroX);
+  SERIAL_PORT.print(F(" Gyro Y: "));
+  SERIAL_PORT.print(store->biasGyroY);
+  SERIAL_PORT.print(F(" Gyro Z: "));
+  SERIAL_PORT.println(store->biasGyroZ);
+  SERIAL_PORT.print(F("Accel X: "));
+  SERIAL_PORT.print(store->biasAccelX);
+  SERIAL_PORT.print(F(" Accel Y: "));
+  SERIAL_PORT.print(store->biasAccelY);
+  SERIAL_PORT.print(F(" Accel Z: "));
+  SERIAL_PORT.println(store->biasAccelZ);
+  SERIAL_PORT.print(F("CPass X: "));
+  SERIAL_PORT.print(store->biasCPassX);
+  SERIAL_PORT.print(F(" CPass Y: "));
+  SERIAL_PORT.print(store->biasCPassY);
+  SERIAL_PORT.print(F(" CPass Z: "));
+  SERIAL_PORT.println(store->biasCPassZ);
+
 }

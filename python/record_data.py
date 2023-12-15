@@ -10,7 +10,7 @@ import time
 ser = serial.Serial('COM3', 921600)  # Adjust your COM port and baud rate
 
 # Open the file
-filename = r'C:\Users\nisch\OneDrive - UBC\UBC_UAS\2023\UAS-PPES\RecordedData\All_Sensor_Data_MOVEING.csv'
+filename = r'C:\Users\nisch\OneDrive - UBC\UBC_UAS\2023\UAS-PPES\RecordedData\UP_HOLD_DOWN_Bias_Added.csv'
 file = open(filename, 'w')
 
 # Write the header

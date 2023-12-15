@@ -66,7 +66,7 @@ void KalmanFilter::initialize(){
          0.5*dt*dt*dt, dt*dt;
     //add the accelerometer stddev
     double gravity = 9.809;
-    double acc_stddev = 0.358 * gravity;
+    double acc_stddev = 0.0037 * gravity;
     Q = Q * acc_stddev * acc_stddev;
 
     // Initialize the measurement matrix

@@ -3,7 +3,7 @@ close all;
 clear all;
 
 %load the data
-DataLocation = '../RecordedData/All_Sensor_Data_stationary.csv';
+DataLocation = '../RecordedData/UP_HOLD_DOWN_Bias_Added.csv';
 SampleRate = 57.0;
 Gravity = 9.809;
 RecordedData = parseData(SampleRate, DataLocation);
@@ -20,10 +20,10 @@ NumStates = 2;
 NumMeasurements = 1;
 NumControlInputs = 1;
 Dt = 1/SampleRate;
-Acc_Z_stdev = 0.158 * Gravity; %meters per second squared
+Acc_Z_stdev = 0.05 * Gravity; %meters per second squared
 Barometer_stdev = 0.8; %meters
 Pressure_stdev = 2.0161;
-meanAccZ = mean(RecordedData.Acc_Z)*Gravity*0;
+meanAccZ = mean(RecordedData.Acc_Z)*Gravity*1;
 
 %State Transition Matrix -- Need to customize based on you system model
 F = [1 Dt;
@@ -79,7 +79,7 @@ for i = 1:length(RecordedData.Time)
     %     myKalmanFilter_inst.update(RecordedData.Altitude(i));
     %     myExtendedKalmanFilter_inst.update(RecordedData.Pressure(i));
     % end
-    myKalmanFilter_inst.update(RecordedData.Altitude(i)+85.0);
+    myKalmanFilter_inst.update(RecordedData.Altitude(i));
     
     %store the results
     KalmanFilterResults(i,:) = myKalmanFilter_inst.X';

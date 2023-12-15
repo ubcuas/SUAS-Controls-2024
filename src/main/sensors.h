@@ -13,6 +13,7 @@
 #include <Adafruit_BMP280.h>
 #include "gpsLowLevel.h"
 #include "vector_and_quaternion.h"
+#include <EEPROM.h>
 
 
 #define SERIAL_PORT Serial
@@ -41,11 +42,28 @@
 
 namespace Sensors{
 
+// Define a storage struct for the biases. Include a non-zero header and a simple checksum
+typedef struct {
+  int32_t header = 0x42;
+  int32_t biasGyroX = 0;
+  int32_t biasGyroY = 0;
+  int32_t biasGyroZ = 0;
+  int32_t biasAccelX = 0;
+  int32_t biasAccelY = 0;
+  int32_t biasAccelZ = 0;
+  int32_t biasCPassX = 0;
+  int32_t biasCPassY = 0;
+  int32_t biasCPassZ = 0;
+  int32_t sum = 0;
+} biasStore;
+
 typedef struct{
     Vector RawAccel;
     Quaternion Orientation;
     Vector LinearAccel;
     Vector LinearAccelOffset;
+    biasStore IMUDmpBias;
+    bool imuBiasFoundinEEPROM;
 } imuData_t;
 
 typedef struct{
@@ -92,7 +110,9 @@ class sensors{
     //IMU Functions
     SENSORS_Status_t initIMU();
     SENSORS_Status_t readIMUData();
-    
+    void updateBiasStoreSum(biasStore *store);
+    bool isBiasStoreValid(biasStore *store);
+    void printBiases(biasStore *store);
 
     //Barometer Functions
     SENSORS_Status_t initBarometer();
