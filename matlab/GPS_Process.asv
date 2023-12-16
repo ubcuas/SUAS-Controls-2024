@@ -32,15 +32,15 @@ NumStates = 2;
 NumMeasurements = 1;
 NumControlInputs = 1;
 Dt = 1/SampleRate;
-Acc_X_stdev = 0.2 * Gravity; %meters per second squared
-Acc_Y_stdev = 0.17 * Gravity; %meters per second squared
-Acc_Z_stdev = 0.16 * Gravity; %meters per second squared
+Acc_X_stdev = 0.1 * Gravity; %meters per second squared
+Acc_Y_stdev = 0.1 * Gravity; %meters per second squared
+Acc_Z_stdev = 0.08 * Gravity; %meters per second squared
 Barometer_stdev = 1.466; %meters
 Pressure_stdev = 2.0161;
 meanAccX = mean(RecordedData.Acc_X)*Gravity*0;
 meanAccY = mean(RecordedData.Acc_Y)*Gravity*0;
 meanAccZ = mean(RecordedData.Acc_Z)*Gravity*0;
-GPS_stdev = 2.0; %m
+GPS_stdev = 5.0; %m
 
 %State Transition Matrix -- Need to customize based on you system model
 F = [1 Dt;
@@ -251,9 +251,6 @@ end
 
 %plot GPS Cordinates on Map
 figure;
-geoplot(RecordedData.Latitude,RecordedData.Longitude, "b-^")
-hold on
-geoplot(KalmanFilter_LatLongTable.Lat,KalmanFilter_LatLongTable.Long, "r-")
+geoplot(RecordedData.Latitude,RecordedData.Longitude, "g:")
+geoplot(KalmanFilter_LatLongTable.Lat,KalmanFilter_LatLongTable.Long, "k:")
 geobasemap satellite
-title("Position Map");
-legend("Standalone GPS Data", "MATLAB-LKF");

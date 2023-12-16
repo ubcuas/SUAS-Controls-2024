@@ -3,15 +3,15 @@ function result =  parseData(samplingFrequency, filePath)
     data = readtable(filePath);
 
     %remove the row with NaN
-    data = rmmissing(data);
+    % data = rmmissing(data);
 
     % Extract columns for Altitude, Acc_X, Acc_Y, and Acc_Z
     Altitude = data.Altitude;
     Acc_X = data.Acc_X;
     Acc_Y = data.Acc_Y;
     Acc_Z = data.Acc_Z;
-    P_Pos = data.P_Pos;
-    P_Vel = data.P_Vel;
+    % P_Pos = data.P_Pos;
+    % P_Vel = data.P_Vel;
     Latitude = data.Latitude;
     Longitude = data.Longitude;
     Altitude = data.Altitude;
@@ -32,8 +32,8 @@ function result =  parseData(samplingFrequency, filePath)
 
 
     % Combine all the data into a single table (optional)
-    result = table(Time, Altitude, Acc_X, Acc_Y, Acc_Z, P_Pos, P_Vel, Pressure, Latitude, Longitude, q_w, q_x, q_y, q_z, Altitude_GPS);  %add alt_1 if needed
+    % result = table(Time, Altitude, Acc_X, Acc_Y, Acc_Z, P_Pos, P_Vel, Pressure, Latitude, Longitude, q_w, q_x, q_y, q_z, Altitude_GPS);  %add alt_1 if needed
     % result = table(Time, Altitude, Acc_X, Acc_Y, Acc_Z, P_Pos, P_Vel, Pressure, Latitude, Longitude, Altitude_GPS);  %add alt_1 if needed
     % result = [data, table(Time)];
-    % result = table(Time, Altitude, Acc_X, Acc_Y, Acc_Z, Pressure, Latitude, Longitude, Altitude_GPS);  %add alt_1 if needed
+     result = table(Time, Altitude, Acc_X, Acc_Y, Acc_Z, Pressure, Latitude, Longitude, Altitude_GPS);  %add alt_1 if needed
 end

@@ -3,7 +3,7 @@ close all;
 clear all;
 
 %load the data
-DataLocation = '../RecordedData/WebRecordedData.csv';
+DataLocation = '../RecordedData/Sensor_Data_MarineDrive_Field.csv';
 SampleRate = 57.0;
 Gravity = 9.809;
 RecordedData = parseData(SampleRate, DataLocation);
