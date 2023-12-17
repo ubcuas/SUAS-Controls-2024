@@ -235,6 +235,9 @@ SENSORS_Status_t sensors::initGPS(){
     // }
 
     SERIAL_PORT.println(F("GPS lock successful"));
+    //save the reference location
+    sensorData.gpsData.refLatitude = sensorData.gpsData.Latitude;
+    sensorData.gpsData.refLongitude = sensorData.gpsData.Longitude;
     //Print the GPS data
     PrintGPSData();
 
@@ -323,7 +326,7 @@ SENSORS_Status_t sensors::readIMUData(){
 
 SENSORS_Status_t sensors::CalibrateIMULinearAcceleration(){
     SENSORS_Status_t status = SENSORS_OK;
-    uint16_t numSamples = 1000;
+    uint16_t numSamples = 100;
     Vector sum{};
     for(uint16_t i = 0; i < numSamples; i++){
         if(readIMUData() != SENSORS_OK){

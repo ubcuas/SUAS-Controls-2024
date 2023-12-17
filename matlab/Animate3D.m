@@ -9,7 +9,7 @@ numPoints = length(Acc_Z);
 %getting delay
 % delay = RecordedDataTime(2) - RecordedData.Time(1);
 % Assuming you have Acc_X, Acc_Y, Acc_Z, and numPoints
-N = 200; % Number of points to display in the trail
+N = 400; % Number of points to display in the trail
 
 % Prepare the figure
 figure;
@@ -20,7 +20,7 @@ zlabel('Z');
 title('3D Movement Animation');
 xlim([min(Acc_X) max(Acc_X)]);
 ylim([min(Acc_Y) max(Acc_Y)]);
-zlim([5*min(Acc_Z) 5*max(Acc_Z)]);
+zlim([min(Acc_Z) max(Acc_Z)]);
 view(3);
 hold on;
 

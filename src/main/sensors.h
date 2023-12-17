@@ -117,7 +117,6 @@ class sensors{
     //Barometer Functions
     SENSORS_Status_t initBarometer();
     SENSORS_Status_t readBarometerData();
-    
 
     //GPS Functions
     SENSORS_Status_t initGPS();

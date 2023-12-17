@@ -17,6 +17,11 @@ typedef struct{
     float Altitude;
     bool lock;
     int satellites;
+    float refLatitude;
+    float refLongitude;
+    float velocity;
+    float Xpos;
+    float Ypos;
 } gpsData_t;
 
 class gpsLowLevel {
@@ -30,6 +35,7 @@ public:
     GPS_Status begin();
     GPS_Status update();
     GPS_Status fetchAllData(gpsData_t * gpsData_Out);
+    float distanceBetween(float lat1, float long1, float lat2, float long2);
 
 private:
     HardwareSerial *gpsSerial;

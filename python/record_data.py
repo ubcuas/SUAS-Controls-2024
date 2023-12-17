@@ -10,11 +10,11 @@ import time
 ser = serial.Serial('COM3', 921600)  # Adjust your COM port and baud rate
 
 # Open the file
-filename = r'C:\Users\nisch\OneDrive - UBC\UBC_UAS\2023\UAS-PPES\RecordedData\UP_HOLD_DOWN_Bias_Added.csv'
+filename = r'C:\Users\nisch\OneDrive - UBC\UBC_UAS\2023\UAS-PPES\RecordedData\3DKalmanFilterDemo1.csv'
 file = open(filename, 'w')
 
 # Write the header
-header = 'P_Pos, P_Vel, Altitude, Pressure, Acc_X, Acc_Y, Acc_Z, Latitude, Longitude, Altitude_GPS, LOCK, Satellites, q_w, q_x, q_y, q_z\n'
+header = 'P_Pos, P_Vel, Altitude, Pressure, Acc_X, Acc_Y, Acc_Z, Latitude, Longitude, Altitude_GPS, LOCK, Satellites, q_w, q_x, q_y, q_z\n' #Px,Py,Pz,Vx,Vy,Vz
 file.write(header)
 
 # Read and record the data until keyboard interrupt

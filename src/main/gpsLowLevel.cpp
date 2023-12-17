@@ -18,6 +18,11 @@ gpsLowLevel::GPS_Status gpsLowLevel::begin(){
     gpsData.Altitude = 0;
     gpsData.lock = false;
     gpsData.satellites = 0;
+    gpsData.refLatitude = 0;
+    gpsData.refLongitude = 0;
+    gpsData.velocity = 0;
+    gpsData.Xpos = 0;
+    gpsData.Ypos = 0;
 
     return GPS_OK;
 }
@@ -37,6 +42,14 @@ gpsLowLevel::GPS_Status gpsLowLevel::fetchAllData(gpsData_t * gpsData_Out){
         gpsData.Longitude = gps.location.lng();
         gpsData.lock = true;
         gpsData.satellites = gps.satellites.value();
+        //get velocity in m/s
+        gpsData.velocity = gps.speed.mps();
+        //get the reference position
+        gpsData.refLatitude = gps.location.lat();
+        gpsData.refLongitude = gps.location.lng();
+        //get the X and Y position
+        gpsData.Xpos = distanceBetween(gpsData.refLatitude, gpsData.refLongitude, gpsData.refLatitude, gpsData.Longitude);
+        gpsData.Ypos = distanceBetween(gpsData.refLatitude, gpsData.refLongitude, gpsData.Latitude, gpsData.refLongitude);
     }
     else{
         //keep the old data just set the lock to false
@@ -47,4 +60,13 @@ gpsLowLevel::GPS_Status gpsLowLevel::fetchAllData(gpsData_t * gpsData_Out){
     *gpsData_Out = gpsData;
 
     return GPS_OK;
+}
+
+float gpsLowLevel::distanceBetween(float lat1, float long1, float lat2, float long2){
+    float dist = TinyGPSPlus::distanceBetween(lat1, long1, lat2, long2);
+    if(long2 < long1)
+        dist = -1.0*dist;
+    else if(lat2 < lat1)
+        dist = -1.0*dist;
+    return dist;
 }

@@ -253,7 +253,7 @@ end
 figure;
 geoplot(RecordedData.Latitude,RecordedData.Longitude, "b-^")
 hold on
-geoplot(KalmanFilter_LatLongTable.Lat,KalmanFilter_LatLongTable.Long, "r-")
+geoplot(KalmanFilter_LatLongTable.Lat,KalmanFilter_LatLongTable.Long, "r-.")
 geobasemap satellite
 title("Position Map");
 legend("Standalone GPS Data", "MATLAB-LKF");

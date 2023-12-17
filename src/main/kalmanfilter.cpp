@@ -106,6 +106,12 @@ void KalmanFilter::predict(MatrixXd U_) {
 
     // Update the control vector
     U = U_;
+
+    //in case X is not a number, reinitialize the filter
+    if(isnan(X(0,0)) || isnan(X(1,0))){
+        //reset the filter
+        initialize();
+    }
 }
 
 /*
@@ -124,6 +130,12 @@ void KalmanFilter::update(MatrixXd Z_) {
 
     // Update the state covariance matrix
     P = (I - K*H)*P*(I - K*H).transpose() + K*R*K.transpose();
+
+    //in case X is not a number, reinitialize the filter
+    if(isnan(X(0,0)) || isnan(X(1,0))){
+        //reset the filter
+        initialize();
+    }
 }
 
 /*
