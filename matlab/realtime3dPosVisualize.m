@@ -16,7 +16,7 @@ xlabel("X (m)");
 ylabel("Y (m)");
 zlabel("Z (m)");
 hold on;
-% limit1 = 0.2; %meters
+% limit1 = 0.1; %meters
 % xlim([-1*limit1 limit1]);
 % ylim([-1*limit1 limit1]);
 % zlim([-1*limit1 limit1]);
@@ -53,7 +53,7 @@ try
         dataVals = str2num(data); % Convert string to numeric array
 
         % Check if the data conversion was successful and has the correct length
-        if ~isempty(dataVals) && length(dataVals) == 6
+        if ~isempty(dataVals) && length(dataVals) == 11
             Px = dataVals(1);
             Py = dataVals(2);
             Pz = dataVals(3);

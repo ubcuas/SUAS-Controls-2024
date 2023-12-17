@@ -210,13 +210,18 @@ void PrintSensorData(){
   //   X_Yaxis(0,0),    //Kalman-pos_Yaxis
   //   X_Yaxis(1,0)     //Kalman-vel_Yaxis
   // );
-  snprintf(buffer, sizeof(buffer), "%.2lf,%.2lf,%.2lf,%.2lf,%.2lf,%.2lf\n", 
+  snprintf(buffer, sizeof(buffer), "%.2lf,%.2lf,%.2lf,%.2lf,%.2lf,%.2lf,%.6lf,%.6lf,%.2lf,%d,%d\n", 
     X_Xaxis(0,0),    //Kalman-pos_Xaxis
     X_Yaxis(0,0),    //Kalman-pos_Yaxis
     X_Zaxis(0,0),    //Kalman-pos_Zaxis
     X_Xaxis(1,0),    //Kalman-vel_Xaxis
     X_Yaxis(1,0),    //Kalman-vel_Yaxis
-    X_Zaxis(1,0)     //Kalman-vel_Zaxis
+    X_Zaxis(1,0),     //Kalman-vel_Zaxis
+    sensorData_inst.gpsData.Latitude, 
+    sensorData_inst.gpsData.Longitude, 
+    sensorData_inst.gpsData.Altitude,
+    sensorData_inst.gpsData.lock? 1 : 0, 
+    sensorData_inst.gpsData.satellites
   );
   // Send the data to all connected WebSocket clients
   if(webStreamServer_inst.send(buffer) == WebStreamServer::SUCCESS){
