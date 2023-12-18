@@ -10,10 +10,18 @@
 
 WebStreamServer::WebStreamServerState WebStreamServer::init(){
     // Set up the ESP32 as an Access Point
-    WiFi.softAP(this->ssid, this->password);
-    IPAddress IP = WiFi.softAPIP();
-    SERIAL_PORT.print("AP IP address: ");
+    // WiFi.softAP(this->ssid, this->password);
+    // IPAddress IP = WiFi.softAPIP();
+    WiFi.begin(ssid, password);
+    Serial.print("\n");
+    while (WiFi.status() != WL_CONNECTED) {
+        delay(500);
+        Serial.print(".");
+    }
+    IPAddress IP = WiFi.localIP();
+    SERIAL_PORT.print("\nDEvice Connected!\nAP IP address: ");
     SERIAL_PORT.println(IP);
+    delay(1000);
 
     // WebSocket Event Handler with correct lambda capture
     this->ws.onEvent([this](AsyncWebSocket * server, AsyncWebSocketClient * client, AwsEventType type, void * arg, uint8_t *data, size_t len) {

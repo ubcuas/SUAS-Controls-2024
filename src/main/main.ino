@@ -182,6 +182,7 @@ void DoKalman(){
 void PrintSensorData(){
 
   char buffer[500];
+  static uint32_t time = millis();
   // Print the data
   //SERIAL_PORT.print(0x4008);
   //get the state
@@ -224,10 +225,14 @@ void PrintSensorData(){
     sensorData_inst.gpsData.satellites
   );
   // Send the data to all connected WebSocket clients
-  if(webStreamServer_inst.send(buffer) == WebStreamServer::SUCCESS){
+  if(millis() - time > 50){
+    time = millis();
+    if(webStreamServer_inst.send(buffer) == WebStreamServer::SUCCESS){
     //SERIAL_PORT.println(mycounter);
     //mycounter++;
   }
+  }
+  
   SERIAL_PORT.print(buffer);
 }
 

@@ -44,9 +44,9 @@ gpsLowLevel::GPS_Status gpsLowLevel::fetchAllData(gpsData_t * gpsData_Out){
         gpsData.satellites = gps.satellites.value();
         //get velocity in m/s
         gpsData.velocity = gps.speed.mps();
-        //get the reference position
-        gpsData.refLatitude = gps.location.lat();
-        gpsData.refLongitude = gps.location.lng();
+        // //get the reference position
+        // gpsData.refLatitude = gps.location.lat();
+        // gpsData.refLongitude = gps.location.lng();
         //get the X and Y position
         gpsData.Xpos = distanceBetween(gpsData.refLatitude, gpsData.refLongitude, gpsData.refLatitude, gpsData.Longitude);
         gpsData.Ypos = distanceBetween(gpsData.refLatitude, gpsData.refLongitude, gpsData.Latitude, gpsData.refLongitude);
