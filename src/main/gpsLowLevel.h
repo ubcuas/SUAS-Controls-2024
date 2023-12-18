@@ -35,6 +35,7 @@ public:
     GPS_Status begin();
     GPS_Status update();
     GPS_Status fetchAllData(gpsData_t * gpsData_Out);
+    GPS_Status resetReference();
     float distanceBetween(float lat1, float long1, float lat2, float long2);
 
 private:

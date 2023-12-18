@@ -216,24 +216,37 @@ SENSORS_Status_t sensors::initGPS(){
     // wait for the GPS to get a lock
     SERIAL_PORT.print(F("Waiting for GPS lock: "));
 
-    //first read Data from GPS
-    // int numTries = 0;
-    // while(!sensorData.gpsData.lock){
-    //     if(readGPSData() != SENSORS_OK){
-    //         SERIAL_PORT.println(F("GPS read failed, trying again..."));
-    //     }
-    //     else{
-    //         SERIAL_PORT.printf("Try: %d\n", numTries);
-    //     }
-    //     numTries++;
-    //     if(numTries > 600){
-    //         SERIAL_PORT.println(F("GPS lock failed"));
-    //         status = SENSORS_FAIL;
-    //         return status;
-    //     }
-    //     delay(250);
-    // }
+    // first read Data from GPS
+    int numTries = 0;
+    while(!sensorData.gpsData.lock){
+        if(readGPSData() != SENSORS_OK){
+            SERIAL_PORT.println(F("GPS read failed, trying again..."));
+        }
+        else{
+            SERIAL_PORT.printf("Try: %d\n", numTries);
+        }
+        numTries++;
+        if(numTries > 20){
+            SERIAL_PORT.println(F("GPS lock failed"));
+            //status = SENSORS_FAIL;
+            break;
+            // return status;
+        }
+        delay(250);
+    }
 
+    //read GPS Data a few times to get a good location
+    SERIAL_PORT.println("Trying to get curent location");
+    delay(500);
+    for(int i = 0; i < 30; i++){
+      if(readGPSData() != SENSORS_OK){
+        SERIAL_PORT.println("GPS READ FAILED, trying again");
+      }
+      else{
+        SERIAL_PORT.print(".");
+      }
+
+    }
     SERIAL_PORT.println(F("GPS lock successful"));
     //save the reference location
     sensorData.gpsData.refLatitude = sensorData.gpsData.Latitude;
@@ -378,6 +391,10 @@ SENSORS_Status_t sensors::readGPSData(){
     //copy the data to the sensorData struct
     gps.fetchAllData(&sensorData.gpsData);
     return status;
+}
+
+void sensors::resetGPSReference(){
+  gps.resetReference();
 }
 
 void sensors::PrintGPSData(){

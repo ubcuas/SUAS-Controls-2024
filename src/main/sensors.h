@@ -95,6 +95,7 @@ class sensors{
     SENSORS_Status_t CalibrateIMULinearAcceleration();
     SENSORS_Status_t CalibrateBarometerAltitude();
     void PrintGPSData();
+    void resetGPSReference();
 
     private:
     //ICM_20948 Object

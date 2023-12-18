@@ -62,6 +62,12 @@ gpsLowLevel::GPS_Status gpsLowLevel::fetchAllData(gpsData_t * gpsData_Out){
     return GPS_OK;
 }
 
+gpsLowLevel::GPS_Status gpsLowLevel::resetReference(){
+  gpsData.refLatitude = gpsData.Latitude;
+  gpsData.refLongitude = gpsData.Longitude;
+  return GPS_OK;
+}
+
 float gpsLowLevel::distanceBetween(float lat1, float long1, float lat2, float long2){
     float dist = TinyGPSPlus::distanceBetween(lat1, long1, lat2, long2);
     if(long2 < long1)

@@ -11,15 +11,33 @@
 WebStreamServer::WebStreamServerState WebStreamServer::init(){
     // Set up the ESP32 as an Access Point
     // WiFi.softAP(this->ssid, this->password);
-    // IPAddress IP = WiFi.softAPIP();
+    IPAddress IP;
     WiFi.begin(ssid, password);
-    Serial.print("\n");
+    SERIAL_PORT.print("\n");
+    int i = 0;
+    bool softAP = false;
     while (WiFi.status() != WL_CONNECTED) {
         delay(500);
-        Serial.print(".");
+        SERIAL_PORT.print(".");
+        i++;
+        if(i > 120){
+          SERIAL_PORT.println("\nCannot connect to Wifi, starting accesspoint. 3d Plotting not available");
+          WiFi.disconnect(); // Disconnect from any existing Wi-Fi connections or attempts
+          delay(100); // Short delay to allow the WiFi hardware to initialize the change
+          softAP = true;
+          break;
+        }
     }
-    IPAddress IP = WiFi.localIP();
-    SERIAL_PORT.print("\nDEvice Connected!\nAP IP address: ");
+    if(softAP){
+      WiFi.softAP(this->ssid, this->password);
+      delay(500);
+      IP = WiFi.softAPIP();
+    }
+    else{
+      IP = WiFi.localIP();
+    }
+    
+    SERIAL_PORT.print("\nDevice Connected!\nAP IP address: ");
     SERIAL_PORT.println(IP);
     delay(1000);
 
@@ -39,6 +57,13 @@ WebStreamServer::WebStreamServerState WebStreamServer::init(){
     // HTTP handler
     this->server.on("/", HTTP_GET, [](AsyncWebServerRequest *request){
         request->send_P(200, "text/html", html_page);  // Ensure html_page is defined
+    });
+    // Define a new route for the custom function
+    this->server.on("/customAction", HTTP_GET, [this](AsyncWebServerRequest *request) {
+        if (customFunction) {
+            customFunction(); // Call the custom function
+        }
+        request->send(200, "text/plain", "Custom action executed");
     });
 
     // Start server

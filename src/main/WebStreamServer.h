@@ -12,6 +12,8 @@
 #include <WiFi.h>
 #include <AsyncTCP.h>
 #include <ESPAsyncWebServer.h>
+#include <functional>
+
 
 #define SERIAL_PORT Serial
 
@@ -76,6 +78,12 @@ const char html_page[] PROGMEM = R"rawliteral(
             downloadData();
         }
 
+        function callCustomFunction() {
+            fetch('/customAction')
+            .then(response => response.text())
+            .then(data => console.log(data));
+        }
+
         function downloadData() {
             const blob = new Blob([recordedData], { type: 'text/plain' });
             const url = window.URL.createObjectURL(blob);
@@ -129,6 +137,9 @@ function clearPlot() {
     <button onclick="stopRecording()">Stop Recording</button>
     <!-- 'Clear Plot' Button -->
     <button onclick="clearPlot()">Clear Plot</button>
+    <!-- 'Reset Reference Button -->
+    <button onclick="callCustomFunction()">Reset GPS Reference</button>
+
 
 <!-- Dropdown Menus for Axis Selection -->
 <p>Select data channels for each axis:</p>
@@ -159,6 +170,7 @@ function clearPlot() {
 
 class WebStreamServer {
 public:
+    typedef std::function<void()> CustomFunction;
     WebStreamServer(): server(80), ws("/ws"){};
     typedef enum{
         SUCCESS,
@@ -168,6 +180,9 @@ public:
 
     WebStreamServerState init();
     WebStreamServerState send(char* data);  // Function declaration
+    void setCustomFunction(CustomFunction func) {
+        this->customFunction = func;
+    }
 
 private:
     AsyncWebServer server;
@@ -175,6 +190,7 @@ private:
     bool connected = false;
     const char* ssid = "Nischay_iphone";
     const char* password = "r18nmbr4";
+    CustomFunction customFunction;
 };
 
 #endif // WEBSTREAMSERVER_H

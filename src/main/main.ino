@@ -75,7 +75,10 @@ void setup()
 {
   SERIAL_PORT.begin(921600); // Start the serial console
   webStreamServer_inst.init();
-  
+  // webStreamServer_inst.setCustomFunction(mySensor_inst.resetGPSReference());
+  // webStreamServer_inst.setCustomFunction(std::bind(&Sensors::resetGPSReference, &mySensor_inst));
+  webStreamServer_inst.setCustomFunction([&]() { mySensor_inst.resetGPSReference(); });
+
   // Initialize the Sensors
   if(mySensor_inst.init() != Sensors::SENSORS_OK){
     SERIAL_PORT.println("Sensor init failed");
@@ -182,6 +185,7 @@ void DoKalman(){
 void PrintSensorData(){
 
   char buffer[500];
+  char buffer1[500];
   static uint32_t time = millis();
   // Print the data
   //SERIAL_PORT.print(0x4008);
@@ -189,29 +193,29 @@ void PrintSensorData(){
   MatrixXd X_Zaxis = myKalmanFilter_inst_Z.getState();
   MatrixXd X_Yaxis = myKalmanFilter_inst_Y.getState();
   MatrixXd X_Xaxis = myKalmanFilter_inst_X.getState();
-  // snprintf(buffer, sizeof(buffer), "%.2lf,%.2lf,%.2lf,%.3lf,%.6lf,%.6lf,%.6lf,%.6lf,%.6lf,%.2lf,%d,%d,%.3lf,%.3lf,%.3lf,%.3lf,%.2lf,%.2lf,%.2lf,%.2lf\n", 
-  //   X_Zaxis(0,0),    //Kalman-pos_Zaxis
-  //   X_Zaxis(1,0),    //Kalman-vel_Zaxis
-  //   sensorData_inst.barometerData.Altitude - sensorData_inst.barometerData.AltitudeOffset,
-  //   sensorData_inst.barometerData.Pressure/100,
-  //   sensorData_inst.imuData.LinearAccel.v0 /*- sensorData_inst.imuData.LinearAccelOffset.v0*/, 
-  //   sensorData_inst.imuData.LinearAccel.v1 /*- sensorData_inst.imuData.LinearAccelOffset.v1*/, 
-  //   sensorData_inst.imuData.LinearAccel.v2 /*- sensorData_inst.imuData.LinearAccelOffset.v2*/, 
-  //   sensorData_inst.gpsData.Latitude, 
-  //   sensorData_inst.gpsData.Longitude, 
-  //   sensorData_inst.gpsData.Altitude, 
-  //   sensorData_inst.gpsData.lock? 1 : 0, 
-  //   sensorData_inst.gpsData.satellites, 
-  //   sensorData_inst.imuData.Orientation.q0, 
-  //   sensorData_inst.imuData.Orientation.q1, 
-  //   sensorData_inst.imuData.Orientation.q2, 
-  //   sensorData_inst.imuData.Orientation.q3,
-  //   X_Xaxis(0,0),    //Kalman-pos_Xaxis
-  //   X_Xaxis(1,0),    //Kalman-vel_Xaxis
-  //   X_Yaxis(0,0),    //Kalman-pos_Yaxis
-  //   X_Yaxis(1,0)     //Kalman-vel_Yaxis
-  // );
-  snprintf(buffer, sizeof(buffer), "%.2lf,%.2lf,%.2lf,%.2lf,%.2lf,%.2lf,%.6lf,%.6lf,%.2lf,%d,%d\n", 
+  snprintf(buffer, sizeof(buffer), "%.2lf,%.2lf,%.2lf,%.3lf,%.6lf,%.6lf,%.6lf,%.6lf,%.6lf,%.2lf,%d,%d,%.3lf,%.3lf,%.3lf,%.3lf,%.2lf,%.2lf,%.2lf,%.2lf\n", 
+    X_Zaxis(0,0),    //Kalman-pos_Zaxis
+    X_Zaxis(1,0),    //Kalman-vel_Zaxis
+    sensorData_inst.barometerData.Altitude - sensorData_inst.barometerData.AltitudeOffset,
+    sensorData_inst.barometerData.Pressure/100,
+    sensorData_inst.imuData.LinearAccel.v0 /*- sensorData_inst.imuData.LinearAccelOffset.v0*/, 
+    sensorData_inst.imuData.LinearAccel.v1 /*- sensorData_inst.imuData.LinearAccelOffset.v1*/, 
+    sensorData_inst.imuData.LinearAccel.v2 /*- sensorData_inst.imuData.LinearAccelOffset.v2*/, 
+    sensorData_inst.gpsData.Latitude, 
+    sensorData_inst.gpsData.Longitude, 
+    sensorData_inst.gpsData.Altitude, 
+    sensorData_inst.gpsData.lock? 1 : 0, 
+    sensorData_inst.gpsData.satellites, 
+    sensorData_inst.imuData.Orientation.q0, 
+    sensorData_inst.imuData.Orientation.q1, 
+    sensorData_inst.imuData.Orientation.q2, 
+    sensorData_inst.imuData.Orientation.q3,
+    X_Xaxis(0,0),    //Kalman-pos_Xaxis
+    X_Xaxis(1,0),    //Kalman-vel_Xaxis
+    X_Yaxis(0,0),    //Kalman-pos_Yaxis
+    X_Yaxis(1,0)     //Kalman-vel_Yaxis
+  );
+  snprintf(buffer1, sizeof(buffer1), "%.2lf,%.2lf,%.2lf,%.2lf,%.2lf,%.2lf,%.6lf,%.6lf,%.2lf,%d,%d\n", 
     X_Xaxis(0,0),    //Kalman-pos_Xaxis
     X_Yaxis(0,0),    //Kalman-pos_Yaxis
     X_Zaxis(0,0),    //Kalman-pos_Zaxis
@@ -227,7 +231,7 @@ void PrintSensorData(){
   // Send the data to all connected WebSocket clients
   if(millis() - time > 50){
     time = millis();
-    if(webStreamServer_inst.send(buffer) == WebStreamServer::SUCCESS){
+    if(webStreamServer_inst.send(buffer1) == WebStreamServer::SUCCESS){
     //SERIAL_PORT.println(mycounter);
     //mycounter++;
   }
