@@ -20,7 +20,7 @@ WebStreamServer::WebStreamServerState WebStreamServer::init(){
         delay(500);
         SERIAL_PORT.print(".");
         i++;
-        if(i > 120){
+        if(i > 5){
           SERIAL_PORT.println("\nCannot connect to Wifi, starting accesspoint. 3d Plotting not available");
           WiFi.disconnect(); // Disconnect from any existing Wi-Fi connections or attempts
           delay(100); // Short delay to allow the WiFi hardware to initialize the change
