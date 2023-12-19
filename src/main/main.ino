@@ -237,7 +237,7 @@ void PrintSensorData(){
   }
   }
   
-  SERIAL_PORT.print(buffer1);
+  SERIAL_PORT.print(buffer);
 }
 
 void DoCount(){
