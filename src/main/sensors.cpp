@@ -245,6 +245,7 @@ SENSORS_Status_t sensors::initGPS(){
       else{
         SERIAL_PORT.print(".");
       }
+      delay(200);
 
     }
     SERIAL_PORT.println(F("GPS lock successful"));
