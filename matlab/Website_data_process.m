@@ -1,6 +1,6 @@
 close all;
 clear all;
-RecordedData = readtable('../RecordedData/Triumf_full_kalman_filter_test.csv');
+RecordedData = readtable('../RecordedData/SensorData_nobel_park.csv');
 % If abs of Latitdue and longitude is less than 10 then remove the row
 RecordedData = RecordedData(abs(RecordedData.Px) < 200, :);
 RecordedData = RecordedData(abs(RecordedData.Py) < 200, :);
