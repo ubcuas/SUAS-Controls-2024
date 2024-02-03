@@ -1,0 +1,4 @@
+Biases restored.
+Gyro X: 0 Gyro Y: 0 Gyro Z: 0
+Accel X: -119808 Accel Y: -726016 Accel Z: 1015808
+CPass X: -1101664 CPass Y: 1349216 CPass Z: -907136

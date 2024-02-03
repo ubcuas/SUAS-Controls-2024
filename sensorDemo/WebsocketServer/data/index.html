@@ -1,0 +1,68 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>ESP Data Logger</title>
+    <script>
+        let ws;
+        let isRecording = false;
+        let recordedData = '';
+
+        function connectWebSocket() {
+            ws = new WebSocket('ws://your-esp-device-address');
+
+            ws.onopen = function() {
+                console.log('Connected');
+            };
+
+            ws.onmessage = function(event) {
+                const data = event.data;
+                document.getElementById('dataDisplay').innerText = data;
+                if (isRecording) {
+                    recordedData += data + '\n';
+                }
+            };
+
+            ws.onerror = function(error) {
+                console.log('WebSocket Error: ' + error);
+            };
+
+            ws.onclose = function() {
+                console.log('Connection closed');
+            };
+        }
+
+        function startRecording() {
+            isRecording = true;
+            recordedData = ''; // Reset previously recorded data
+            document.getElementById('status').innerText = 'Recording...';
+        }
+
+        function stopRecording() {
+            isRecording = false;
+            document.getElementById('status').innerText = 'Stopped';
+            downloadData();
+        }
+
+        function downloadData() {
+            const blob = new Blob([recordedData], { type: 'text/plain' });
+            const url = window.URL.createObjectURL(blob);
+            const a = document.createElement('a');
+            a.href = url;
+            a.download = 'recordedData.txt';
+            document.body.appendChild(a);
+            a.click();
+            window.URL.revokeObjectURL(url);
+        }
+
+        window.onload = connectWebSocket;
+    </script>
+</head>
+<body>
+    <h2>ESP Data Logger</h2>
+    <div id="dataDisplay">Waiting for data...</div>
+    <p id="status">Not Recording</p>
+    <button onclick="startRecording()">Start Recording</button>
+    <button onclick="stopRecording()">Stop Recording</button>
+</body>
+</html>
