@@ -353,7 +353,7 @@ void loop()
 
   if (myICM.status != ICM_20948_Stat_FIFOMoreDataAvail) // If more data is available then we should read it right away - and not delay
   {
-    if (/*!biasesStored*/1) // Should we store the biases?
+    if (!biasesStored) // Should we store the biases?
     {
       if (millis() > (startTime + 12000)) // Is it time to store the biases?
       {
@@ -361,27 +361,27 @@ void loop()
 
         biasStore store;
           
-        // bool success = (myICM.getBiasGyroX(&store.biasGyroX) == ICM_20948_Stat_Ok);
-        // success &= (myICM.getBiasGyroY(&store.biasGyroY) == ICM_20948_Stat_Ok);
-        // success &= (myICM.getBiasGyroZ(&store.biasGyroZ) == ICM_20948_Stat_Ok);
-        // success &= (myICM.getBiasAccelX(&store.biasAccelX) == ICM_20948_Stat_Ok);
-        // success &= (myICM.getBiasAccelY(&store.biasAccelY) == ICM_20948_Stat_Ok);
-        // success &= (myICM.getBiasAccelZ(&store.biasAccelZ) == ICM_20948_Stat_Ok);
-        // success &= (myICM.getBiasCPassX(&store.biasCPassX) == ICM_20948_Stat_Ok);
-        // success &= (myICM.getBiasCPassY(&store.biasCPassY) == ICM_20948_Stat_Ok);
-        // success &= (myICM.getBiasCPassZ(&store.biasCPassZ) == ICM_20948_Stat_Ok);
+        bool success = (myICM.getBiasGyroX(&store.biasGyroX) == ICM_20948_Stat_Ok);
+        success &= (myICM.getBiasGyroY(&store.biasGyroY) == ICM_20948_Stat_Ok);
+        success &= (myICM.getBiasGyroZ(&store.biasGyroZ) == ICM_20948_Stat_Ok);
+        success &= (myICM.getBiasAccelX(&store.biasAccelX) == ICM_20948_Stat_Ok);
+        success &= (myICM.getBiasAccelY(&store.biasAccelY) == ICM_20948_Stat_Ok);
+        success &= (myICM.getBiasAccelZ(&store.biasAccelZ) == ICM_20948_Stat_Ok);
+        success &= (myICM.getBiasCPassX(&store.biasCPassX) == ICM_20948_Stat_Ok);
+        success &= (myICM.getBiasCPassY(&store.biasCPassY) == ICM_20948_Stat_Ok);
+        success &= (myICM.getBiasCPassZ(&store.biasCPassZ) == ICM_20948_Stat_Ok);
         
-        store.biasGyroX = 0;
-        store.biasGyroY = 0;
-        store.biasGyroZ = 0;
-        store.biasAccelX = (uint32_t) -119808;
-        store.biasAccelY = (uint32_t) -726016;
-        store.biasAccelZ = (uint32_t) 1015808;
-        store.biasCPassX = (uint32_t) -1101664;
-        store.biasCPassY = (uint32_t) 1349216;
-        store.biasCPassZ = (uint32_t) -907136;
-        updateBiasStoreSum(&store);
-        bool success = 1;
+        
+        // store.biasGyroY = 0;
+        // store.biasGyroZ = 0;
+        // store.biasAccelX = (uint32_t) -119808;
+        // store.biasAccelY = (uint32_t) -726016;
+        // store.biasAccelZ = (uint32_t) 1015808;
+        // store.biasCPassX = (uint32_t) -1101664;
+        // store.biasCPassY = (uint32_t) 1349216;
+        // store.biasCPassZ = (uint32_t) -907136;
+        // updateBiasStoreSum(&store);
+        // bool success = 1;
 
         updateBiasStoreSum(&store);
       
@@ -398,6 +398,7 @@ void loop()
             SERIAL_PORT.println(F("Biases stored."));
             printBiases(&store);
             SERIAL_PORT.println(F("\r\n\r\n\r\n"));
+            delay(10000);
           }
           else
             SERIAL_PORT.println(F("Bias store failed!\r\n\r\n\r\n"));
@@ -406,7 +407,7 @@ void loop()
         {
           SERIAL_PORT.println(F("Bias read failed!\r\n\r\n\r\n"));
         }
-        startTime = millis();
+        // startTime = millis();
       }
     }
       
