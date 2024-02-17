@@ -84,7 +84,8 @@ SENSORS_Status_t sensors::initSensorDataStruct(){
     sensorData.imuData.Orientation = Quaternion(0.0, 0.0, 0.0, 0.0);
     sensorData.imuData.LinearAccel = Vector(0.0, 0.0, 0.0);
     sensorData.imuData.LinearAccelOffset = Vector(0.0, 0.0, 0.0);
-    
+    sensorData.imuData.EulerAngles = Vector(0.0, 0.0, 0.0);
+
     // Initialize the Barometer data
     sensorData.barometerData.Temperature = 0.0;
     sensorData.barometerData.Pressure = 0.0;
@@ -305,7 +306,30 @@ SENSORS_Status_t sensors::readIMUData(){
 
             if(!(isnan(q0) || isnan(q1) || isnan(q2) || isnan(q3))){
               sensorData.imuData.Orientation.set(q0,q1,q2,q3);
+              
+              // Update euler Angles
+              double q2sqr = q2 * q2;
+              
+              //Roll (x-axis rotation)
+              double t0 = +2.0 * (q0 * q1 + q2 * q3);
+              double t1 = +1.0 - 2.0 * (q1 * q1 + q2sqr);
+              double roll = atan2(t0, t1) * 180.0 / PI;
+              
+              // pitch (y-axis rotation)
+              double t2 = +2.0 * (q0 * q2 - q3 * q1);
+              t2 = t2 > 1.0 ? 1.0 : t2;
+              t2 = t2 < -1.0 ? -1.0 : t2;
+              double pitch = asin(t2) * 180.0 / PI;
+              
+              // yaw (z-axis rotation)
+              double t3 = +2.0 * (q0 * q3 + q1 * q2);
+              double t4 = +1.0 - 2.0 * (q2sqr + q3 * q3);
+              double yaw = atan2(t3, t4) * 180.0 / PI;
+
+              //update the Values
+              sensorData.imuData.EulerAngles.set(roll, pitch, yaw);
             }
+
             // SERIAL_PORT.print(0x1001);
             // SERIAL_PORT.print(F(","));
             // SERIAL_PORT.print(q0, 3);
@@ -320,7 +344,7 @@ SENSORS_Status_t sensors::readIMUData(){
             // SERIAL_PORT.println(data.Quat9.Data.Accuracy);
             // SERIAL_PORT.print(F("\n"));
         }
-        if(accnew && quatnew && imu.status != ICM_20948_Stat_FIFOMoreDataAvail){
+        if(accnew && quatnew && (imu.status != ICM_20948_Stat_FIFOMoreDataAvail)){
             dataRead = true;
         }  
         else{

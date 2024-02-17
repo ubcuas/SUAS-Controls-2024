@@ -198,7 +198,7 @@ void PrintSensorData(){
   MatrixXd X_Zaxis = myKalmanFilter_inst_Z.getState();
   MatrixXd X_Yaxis = myKalmanFilter_inst_Y.getState();
   MatrixXd X_Xaxis = myKalmanFilter_inst_X.getState();
-  snprintf(buffer, sizeof(buffer), "hyu, %.2lf,%.2lf,%.2lf,%.3lf,%.6lf,%.6lf,%.6lf,%.6lf,%.6lf,%.2lf,%d,%d,%.3lf,%.3lf,%.3lf,%.3lf,%.2lf,%.2lf,%.2lf,%.2lf\n", 
+  snprintf(buffer, sizeof(buffer), "hyu, %.2lf,%.2lf,%.2lf,%.3lf,%.6lf,%.6lf,%.6lf,%.6lf,%.6lf,%.2lf,%d,%d,%.3lf,%.3lf,%.3lf,%.3lf,%.2lf,%.2lf,%.2lf,%.2lf,%.2lf,%.2lf.%2lf\n", 
     X_Zaxis(0,0),    //Kalman-pos_Zaxis
     X_Zaxis(1,0),    //Kalman-vel_Zaxis
     sensorData_inst.barometerData.Altitude - sensorData_inst.barometerData.AltitudeOffset,
@@ -218,7 +218,10 @@ void PrintSensorData(){
     X_Xaxis(0,0),    //Kalman-pos_Xaxis
     X_Xaxis(1,0),    //Kalman-vel_Xaxis
     X_Yaxis(0,0),    //Kalman-pos_Yaxis
-    X_Yaxis(1,0)     //Kalman-vel_Yaxis
+    X_Yaxis(1,0),     //Kalman-vel_Yaxis
+    sensorData_inst.imuData.EulerAngles.v0, //roll
+    sensorData_inst.imuData.EulerAngles.v1, //pitch
+    sensorData_inst.imuData.EulerAngles.v2  //yaw
   );
 
   snprintf(buffer1, sizeof(buffer1), "hyu, %.2lf,%.2lf,%.2lf,%.2lf,%.2lf,%.2lf,%.6lf,%.6lf,%.2lf,%d,%d\n", 
