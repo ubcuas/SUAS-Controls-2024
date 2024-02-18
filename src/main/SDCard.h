@@ -23,7 +23,7 @@ namespace SDCard
     } SDCardStatus;
 
     SDCardStatus SDcardInit();
-    SDCardStatus SDcardWrite(String data); 
+    SDCardStatus SDcardWrite(const char data[]); 
 } // namespace SDCard
 
 

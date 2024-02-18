@@ -62,6 +62,7 @@ typedef struct{
     Quaternion Orientation;
     Vector LinearAccel;
     Vector LinearAccelOffset;
+    Vector EulerAngles;
     biasStore IMUDmpBias;
     bool imuBiasFoundinEEPROM;
 } imuData_t;

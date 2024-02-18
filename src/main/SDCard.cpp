@@ -29,7 +29,7 @@ namespace SDCard
      * @param data the data to write to the SD card 
      * @return SDCardStatus 
      */
-    SDCardStatus SDcardWrite(String data)
+    SDCardStatus SDcardWrite(const char data[])
     {
         File file = SD.open("/data.txt", FILE_APPEND);
         if (!file)
