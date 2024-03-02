@@ -5,10 +5,17 @@
 */
 
 #include <Arduino.h>
+#include <Servo.h>
 #include "sensors.h"
 #include "kalmanfilter.h"
 #include "WebStreamServer.h"
 #include "SDCard.h"
+#include "PI_Test.h"
+#include "ParachuteSteering.h"
+
+
+#define initialSetpoint 0.0 //used for PID input, unsure if correct - Is this from software = target heading?
+#define BufferLen 150 //Used for PID(?)
 
 #define ACQUIRE_RATE 57.0 //Hz
 #define DELTA_T (1.0f / ACQUIRE_RATE) //seconds
@@ -22,6 +29,8 @@
 #define ACC_Z_STD 0.05 * GRAVITY
 #define BARO_ALT_STD 1.466 //meters
 #define GPS_POS_STD 2.5 //meters
+
+double PIDstructure[11]; //Array to store the PID Data
 
 Sensors::sensors mySensor_inst;
 Sensors::sensorData_t sensorData_inst;
@@ -106,6 +115,9 @@ void setup()
   if(SDCard::SDcardInit() != SDCard::SDCARD_OK){
     Serial.println("SD card failed");
   }
+
+  PIDInit(PIDstructure, initialSetpoint, ACQUIRE_RATE); //PID Setup - Acquire Rate or control freq? 3)!!
+  motorSetup(); //Initialize two servo motors
 }
 
 void loop()
@@ -128,6 +140,7 @@ void loop()
 
   DoKalman();
   PrintSensorData();
+  PIDTesting();
 
   //DoCount();
 }
@@ -261,6 +274,23 @@ void DoCount(){
   else{
     i++;
   }
+}
+
+void PIDTesting(){
+
+  char outputBuffer[BufferLen]; //Dont understand this
+  double pv = sensorData_inst.imuData.EulerAngles.v2  //yaw from current position
+
+  //Get the current sensor reading and compute PID
+  PIDcalculate(PIDstructure, pv);
+  
+  int yaw = map(PIDstructure[8],-255, 255, 0,180); //This aint right either - 5)!!
+  steering(yaw);
+  
+  sprintf(outputBuffer, "Pv: %.5lf \t Error: %.5lf \t Output: %.5lf\t Intrgral: %.5lf \tSteering: %d\n", pv, PIDstructure[7], PIDstructure[8], PIDstructure[10], Yaw); 
+  Serial.print(outputBuffer);
+  
+  delay(1/ACQUIRE_RATE*1000); //Acquire or control freq? - 6)!!
 }
 
 void OLD_PRINT(){
