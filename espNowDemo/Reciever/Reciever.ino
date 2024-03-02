@@ -1,17 +1,10 @@
-
-#include <esp_now.h>
-#include <WiFi.h>
-
-//Structure example to receive data
-//Must match the sender structure
-typedef struct datapacket {
-  float lat;
-  float lon;
-  int bottleID;
-} datapacket;
-
-//Create a struct_message called myData
-datapacket myData;
+/*
+  Reciever.ino - ESP32 reciever code for the ESP-NOW communication protocol
+  Created by Tayyib Chohan, 2024-03-02
+  
+  adapted from https://dronebotworkshop.com/
+*/
+#include "Reciever.h"
 
 //callback function that will be executed when data is received
 void OnDataRecv(const uint8_t * mac, const uint8_t *incomingData, int len) {
@@ -25,6 +18,21 @@ void OnDataRecv(const uint8_t * mac, const uint8_t *incomingData, int len) {
   Serial.print("lon: ");
   Serial.println(myData.lon);
   Serial.println();
+
+  //Send a response
+  if (myData.bottleID == BOTTLE_ID){
+    response.bottleID = BOTTLE_ID;
+    esp_err_t result = esp_now_send(mac, (uint8_t *) &response, sizeof(response));
+    if (result == ESP_OK) {
+      Serial.println("Response sent");
+    }
+    else {
+      Serial.println("Error sending response");
+    }
+  }
+  else{
+    Serial.println("Not my bottle");
+  }
 }
  
 void setup() {
@@ -43,6 +51,10 @@ void setup() {
   // Once ESPNow is successfully Init, we will register for recv CB to
   // get recv packer info
   esp_now_register_recv_cb(OnDataRecv);
+
+  //Register peer
+  esp_now_peer_info_t peerInfo;
+
 }
  
 void loop() {

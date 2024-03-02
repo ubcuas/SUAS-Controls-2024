@@ -1,47 +1,12 @@
 /*
-  ESP-NOW Demo - Transmit
-  esp-now-demo-xmit.ino
-  Sends data to Responder
+  Sender.ino - Use ESP-NOW to send data from one ESP32 to another
+  Created by Tayyib Chohan, 2024-03-02
   
-  DroneBot Workshop 2022
-  https://dronebotworkshop.com
+  adapted from https://dronebotworkshop.com/
 */
  
 // Include Libraries
-#include <esp_now.h>
-#include <WiFi.h>
-
-
-#define DEBUG 1
-#define TIMEOUT_MILLIS 5000
-
-// Reading From Serial
-bool initialized = false;
-int incomingByte = 0;
-char *serialVals[3]; 
-char *ptr = NULL;
-
-
-
-// MAC Address of responder - edit as required
-uint8_t broadcastAddressAll[] = {0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF};
- 
-// Define a sending structure
-typedef struct struct_message {
-  float lat;
-  float lon;
-  int bottleID;
-} struct_message;
- 
-// Define response structure
-typedef struct struct_response {
-  int bottleID;
-} struct_response;
-bool success = false;
-
-
-// Peer info
-esp_now_peer_info_t peerInfo;
+#include "Sender.h"
  
 // Callback function called when data is sent
 void OnDataSent(const uint8_t *mac_addr, esp_now_send_status_t status) {
@@ -52,7 +17,7 @@ void OnDataSent(const uint8_t *mac_addr, esp_now_send_status_t status) {
 }
 
 
-struct_response response;
+
 void OnDataRecv(const uint8_t * mac, const uint8_t *incomingData, int len) {
   memcpy(&response, (struct_response*)incomingData, sizeof(response));
   success = true; 
@@ -103,9 +68,57 @@ void loop() {
   while(!initialized){
     initialized = handShakeSerial();
   }
-
   
-  // Read from Serial
+  struct_message myData = recieveData();
+  broadcastMessage(myData);
+
+  delay(2000);
+}
+
+/**
+ * @brief broadcast message to all recievers and recieve a response
+ * 
+ * @param myData
+ * @return true if message was recieved by reciever successfully
+ */
+bool broadcastMessage(struct_message myData){
+  struct_response response;
+  success = false;
+  //timer for timeout
+  unsigned long start = millis();
+  esp_err_t result2 = esp_now_send(broadcastAddressAll, (uint8_t *) &myData, sizeof(myData));
+  if (result2 == ESP_OK) {  
+    //Wait for confirmation from reciever
+    while(!success){
+      if (millis() - start > TIMEOUT_MILLIS){
+        Serial.println("failed_timout");// Sending message failed timeout
+        return false;
+      }
+    }
+    if (success && response.bottleID == bottleID){
+      Serial.println("success");// Message received by reciever
+      return true;
+    }
+    else {
+      Serial.println("failed_wrongBottle");// Sending message failed revieved wrong bottleID
+      return false;
+    }
+  }
+  else {
+    Serial.println("failed_unknownfailure");// Sending message failed
+    return false;
+  }
+  Serial.println("failed_toSend");// Sending message failed
+  return false;
+}
+
+
+/**
+ * @brief Recieve data from Serial and convert to struct_message
+ *  This function will block until data is recieved
+ * @return struct_message 
+*/
+struct_message recieveData(){
   struct_message myData;  
   int index = 0;
   while (Serial.available() == 0) {} // This is a blocking function
@@ -131,39 +144,15 @@ void loop() {
   myData.lat = lat;
   myData.lon = lon;
   myData.bottleID = bottleID;
-
-  // Send message via ESP-NOW
-  success = false;
-  //timer for timeout
-  unsigned long start = millis();
-  esp_err_t result2 = esp_now_send(broadcastAddressAll, (uint8_t *) &myData, sizeof(myData));
-  if (result2 == ESP_OK) {  
-    //Wait for confirmation from reciever
-    while(!success){
-      if (millis() - start > TIMEOUT_MILLIS){
-        Serial.println("failed");// Sending message failed timeout
-        if (DEBUG){
-          Serial.println("Timeout");
-        }
-        break;
-      }
-    }
-    if (success && response.bottleID == bottleID){
-      Serial.println("success");// Message received by reciever
-    }
-    else {
-      Serial.println("failed");// Sending message failed revieved wrong bottleID
-      if (DEBUG){
-        Serial.println("Wrong BottleID");
-      }
-    }
-  }
-  else {
-    Serial.println("failed");// Sending message failed
-  }
-  delay(2000);
+  return myData;
 }
 
+/**
+ * @brief Handshake with reciever
+ * 
+ * @return true if handshake is successful 
+ * @return false if handshake is unsuccessful
+ */
 bool handShakeSerial(){
   while (Serial.available() == 0) {} 
   String teststr = Serial.readString();
