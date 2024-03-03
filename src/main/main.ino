@@ -14,8 +14,8 @@
 #include "ParachuteSteering.h"
 
 
-#define initialSetpoint 0.0 //used for PID input, unsure if correct - Is this from software = target heading?
-#define BufferLen 150 //Used for PID(?)
+#define initialSetpoint 0.0 //used for PID input
+#define BufferLen 150
 
 #define ACQUIRE_RATE 57.0 //Hz
 #define DELTA_T (1.0f / ACQUIRE_RATE) //seconds
@@ -30,7 +30,6 @@
 #define BARO_ALT_STD 1.466 //meters
 #define GPS_POS_STD 2.5 //meters
 
-double PIDstructure[11]; //Array to store the PID Data
 
 Sensors::sensors mySensor_inst;
 Sensors::sensorData_t sensorData_inst;
@@ -113,10 +112,10 @@ void setup()
   delay(100);
   timeStart = millis();
   if(SDCard::SDcardInit() != SDCard::SDCARD_OK){
-    Serial.println("SD card failed");
+    SERIAL_PORT.println("SD card failed");
   }
 
-  PIDInit(PIDstructure, initialSetpoint, ACQUIRE_RATE); //PID Setup - Acquire Rate or control freq? 3)!!
+  PIDInit(initialSetpoint, ACQUIRE_RATE); //Initializes PID
   motorSetup(); //Initialize two servo motors
 }
 
@@ -259,7 +258,7 @@ void PrintSensorData(){
   }
   }
   if(SDCard::SDcardWrite(buffer) != SDCard::SDCARD_OK){
-    Serial.println("SD card write failed");
+    SERIAL_PORT.println("SD card write failed");
   } 
   SERIAL_PORT.print(buffer);
 }
@@ -278,7 +277,7 @@ void DoCount(){
 
 void PIDTesting(){
 
-  char outputBuffer[BufferLen]; //Dont understand this
+  char outputBuffer[BufferLen]; //This is for printing values out to terminal
   double pv = sensorData_inst.imuData.EulerAngles.v2  //yaw from current position
 
   //Get the current sensor reading and compute PID
@@ -288,9 +287,9 @@ void PIDTesting(){
   steering(yaw);
   
   sprintf(outputBuffer, "Pv: %.5lf \t Error: %.5lf \t Output: %.5lf\t Intrgral: %.5lf \tSteering: %d\n", pv, PIDstructure[7], PIDstructure[8], PIDstructure[10], Yaw); 
-  Serial.print(outputBuffer);
+  SERIAL_PORT.print(outputBuffer);
   
-  delay(1/ACQUIRE_RATE*1000); //Acquire or control freq? - 6)!!
+  delay(1/ACQUIRE_RATE*1000);
 }
 
 void OLD_PRINT(){

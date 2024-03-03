@@ -13,7 +13,7 @@ void motorSetup(){
 }
 
 void steering(int yaw){
-  //Value written to motors - needs to be adjusted using yaw value. Unsure how to do this - 1!!
+    //try to figure out code to either give value that can be given directly to function/figure out how to move motors cooperatively
   int right_motor_value = map(yaw, -180, 180, 0, 180);
   int left_motor_value = map(yaw, -180, 180, 0, 180);
  
