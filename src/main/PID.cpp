@@ -20,8 +20,7 @@
  * Parameters: setpoint = input setpoint
  *             control frequency = acquire rate of PID
  */
-void PID::PIDInit(double setpoint, double controlFrequency){
-    this->setpoint=setpoint;
+void PID::PIDInit(double controlFrequency){
     DT=1/controlFrequency;
 }
 
@@ -29,7 +28,7 @@ void PID::PIDInit(double setpoint, double controlFrequency){
  * PID Calculate function
  * Parameters:processVariable - The reading from the sensor (feedback signal)
  */
-void PID::PIDcalculate(double processVariable){
+float PID::PIDcalculate(double processVariable){
     // Set Error
     error = setpoint - processVariable;
     
@@ -52,6 +51,8 @@ void PID::PIDcalculate(double processVariable){
     // Set Integral and Previous Error
     prevError = error;
     integral += error * DT;
+
+    return output;
 }
 
 /*

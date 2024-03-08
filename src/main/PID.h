@@ -13,11 +13,13 @@
 #ifndef _PI_TEST_H    
 #define _PI_TEST_H
 
+#define initialSetpoint 0.0 
 #define MAX_OUTPUT 255.0
 #define MIN_OUTPUT -255.0
 #define DEFAULT_KP 1.0
 #define DEFAULT_KI 1.8
 #define DEFAULT_KD 0.6
+
 
 class PID {
 public:
@@ -25,10 +27,10 @@ public:
     PID();
 
     // Function to initialize the PID controller with specific parameters
-    void PIDInit(double setpoint, double controlFrequency);
+    void PIDInit(double controlFrequency);
 
     // Calculate the PID output based on the process variable
-    void PIDcalculate(double processVariable);
+    float PIDcalculate(double processVariable);
 
     // Update the setpoint of the PID controller
     void PIDupdateSetpoint(double setpoint);
@@ -40,15 +42,12 @@ private:
   double KP = DEFAULT_KP;
   double KI = DEFAULT_KI;
   double KD = DEFAULT_KD;
-  double setpoint=0;
+  double setpoint=initialSetpoint;
   double error=0;
   double output=0;
   double prevError=0;
   double integral=0;
 };
 
-/*
-  
-*/
 
 #endif

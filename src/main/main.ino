@@ -10,11 +10,10 @@
 #include "kalmanfilter.h"
 #include "WebStreamServer.h"
 #include "SDCard.h"
-#include "PI_Test.h"
-#include "ParachuteSteering.h"
+#include "PID.h"
+#include "Steering.h"
 
 
-#define initialSetpoint 0.0 //used for PID input
 #define BufferLen 150
 
 #define ACQUIRE_RATE 57.0 //Hz
@@ -30,7 +29,7 @@
 #define BARO_ALT_STD 1.466 //meters
 #define GPS_POS_STD 2.5 //meters
 
-
+PID PID;
 Sensors::sensors mySensor_inst;
 Sensors::sensorData_t sensorData_inst;
 KalmanFilter myKalmanFilter_inst_Z(NUM_STATES, NUM_MEASUREMENTS, NUM_CONTROL_INPUTS, DELTA_T, ACC_Z_STD, BARO_ALT_STD);
@@ -114,8 +113,8 @@ void setup()
   if(SDCard::SDcardInit() != SDCard::SDCARD_OK){
     SERIAL_PORT.println("SD card failed");
   }
-
-  PIDInit(initialSetpoint, ACQUIRE_RATE); //Initializes PID
+  //Initializes PID object
+  PID.PIDInit(ACQUIRE_RATE);
   motorSetup(); //Initialize two servo motors
 }
 
@@ -278,18 +277,17 @@ void DoCount(){
 void PIDTesting(){
 
   char outputBuffer[BufferLen]; //This is for printing values out to terminal
-  double pv = sensorData_inst.imuData.EulerAngles.v2  //yaw from current position
+  double pv = sensorData_inst.imuData.EulerAngles.v2  //process variable from current position
 
-  //Get the current sensor reading and compute PID
-  PIDcalculate(PIDstructure, pv);
-  
-  int yaw = map(PIDstructure[8],-255, 255, 0,180); //This aint right either - 5)!!
+  //compute PID angle using
+  int yaw = PID.PIDcalculate(pv);
+
+  //Send to servos
   steering(yaw);
   
-  sprintf(outputBuffer, "Pv: %.5lf \t Error: %.5lf \t Output: %.5lf\t Intrgral: %.5lf \tSteering: %d\n", pv, PIDstructure[7], PIDstructure[8], PIDstructure[10], Yaw); 
+  //Print to terminal
+  sprintf(outputBuffer, "Pv: %.5lf \t Error: %.5lf \t Output: %.5lf\t Integral: %.5lf \t \n", pv, PID.error, yaw, PID.integral); 
   SERIAL_PORT.print(outputBuffer);
-  
-  delay(1/ACQUIRE_RATE*1000);
 }
 
 void OLD_PRINT(){
