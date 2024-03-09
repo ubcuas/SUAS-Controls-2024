@@ -21,14 +21,14 @@
  *             control frequency = acquire rate of PID
  */
 void PID::PIDInit(double controlFrequency){
-    DT=1/controlFrequency;
+    DT=1.0/controlFrequency;
 }
 
 /*
  * PID Calculate function
  * Parameters:processVariable - The reading from the sensor (feedback signal)
  */
-float PID::PIDcalculate(double processVariable){
+double PID::PIDcalculate(double processVariable){
     // Set Error
     error = setpoint - processVariable;
     

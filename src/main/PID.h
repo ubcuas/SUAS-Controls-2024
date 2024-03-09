@@ -30,7 +30,7 @@ public:
     void PIDInit(double controlFrequency);
 
     // Calculate the PID output based on the process variable
-    float PIDcalculate(double processVariable);
+    double PIDcalculate(double processVariable);
 
     // Update the setpoint of the PID controller
     void PIDupdateSetpoint(double setpoint);
