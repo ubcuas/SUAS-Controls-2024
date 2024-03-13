@@ -101,11 +101,12 @@ void setup()
   myKalmanFilter_inst_Y.initialize();
   myKalmanFilter_inst_X.initialize();
   
-  delay(100);
-  timeStart = millis();
   if(SDCard::SDcardInit() != SDCard::SDCARD_OK){
     Serial.println("SD card failed");
   }
+
+  delay(1000);
+  timeStart = millis();
 }
 
 void loop()
@@ -175,15 +176,6 @@ void DoKalman(){
   myKalmanFilter_inst_Y.update(Z_Yaxis);
   myKalmanFilter_inst_X.update(Z_Xaxis);
 
-  // //incase X is not a number reset the filter --> added in the kalman filter class
-  // if(isnan(myKalmanFilter_inst.getState()(0,0)) || isnan(myKalmanFilter_inst.getState()(1,0))){
-  //   //reset the filter
-  //   myKalmanFilter_inst.initialize();
-  // }
-
-  //print the data
-  //SERIAL_PORT.print(0x4004);
-  //SERIAL_PORT.print(",");
 }
 
 void PrintSensorData(){
@@ -193,7 +185,6 @@ void PrintSensorData(){
   
   static uint32_t time = millis();
   // Print the data
-  //SERIAL_PORT.print(0x4008);
   //get the state
   MatrixXd X_Zaxis = myKalmanFilter_inst_Z.getState();
   MatrixXd X_Yaxis = myKalmanFilter_inst_Y.getState();
@@ -245,7 +236,9 @@ void PrintSensorData(){
     //mycounter++;
   }
   }
-  if(SDCard::SDcardWrite(buffer) != SDCard::SDCARD_OK){
+
+  SDCard::SDCardStatus SDWriteStatus = SDCard::SDcardWrite(buffer);
+  if(SDWriteStatus == SDCard::SDCARD_ERROR){ //only alert if the writing failed for some reason.
     Serial.println("SD card write failed");
   } 
   SERIAL_PORT.print(buffer);
