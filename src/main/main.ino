@@ -12,6 +12,8 @@
 #include "SDCard.h"
 #include "PID.h"
 #include "Steering.h"
+#include "geoStars.h"
+
 
 
 #define BufferLen 150
@@ -29,7 +31,9 @@
 #define BARO_ALT_STD 1.466 //meters
 #define GPS_POS_STD 2.5 //meters
 
-PID PID;
+Pid PID;
+GEO_DATUM datum;
+//GeographicLib::LocalCartesian geoConverter;
 Sensors::sensors mySensor_inst;
 Sensors::sensorData_t sensorData_inst;
 KalmanFilter myKalmanFilter_inst_Z(NUM_STATES, NUM_MEASUREMENTS, NUM_CONTROL_INPUTS, DELTA_T, ACC_Z_STD, BARO_ALT_STD);
@@ -275,11 +279,22 @@ void DoCount(){
 }
 
 void PIDTesting(){
-
   char outputBuffer[BufferLen]; //This is for printing values out to terminal
-  double pv = sensorData_inst.imuData.EulerAngles.v2  //process variable from current position
+  float target_lon=0; //Example value to be changed later
+  float target_lat=0; //Example value to be changed later
 
-  //compute PID angle using
+  // Take these GPS and add x,y,z, from kalman filter
+  // Lat_Fast = GPS.Fast+X_Moved*ConversionFactor
+  int Radius = 6378100;
+  float lon_fast = sensorData_inst.gpsData.Longitude + X_Xaxis(0,0)*180/Radius/pi;
+  float lat_fast = sensorData_inst.gpsData.Latitude + X_Yaxis(0,0)*180/Radius/pi;
+  //Height = current GPS_Position & use kinematics to get new height?
+  
+  //Get bearing between two sets of coordinates (Euler Angle or using GPS bearings?)
+  double pv = sensorData_inst.imuData.EulerAngles.v2  //process variable from current position
+  //double pv = courseTo(lat_fast,lon_fast,target_lat,target_lon);
+
+  //compute PID angle using PID structure
   int yaw = PID.PIDcalculate(pv);
 
   //Send to servos

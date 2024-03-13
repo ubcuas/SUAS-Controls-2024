@@ -10,8 +10,8 @@
  * Extra comments added in for personal development
  */
 
-#ifndef _PI_TEST_H    
-#define _PI_TEST_H
+#ifndef _PID_H    
+#define _PID_H
 
 #define initialSetpoint 0.0 
 #define MAX_OUTPUT 255.0
@@ -21,16 +21,16 @@
 #define DEFAULT_KD 0.6
 
 
-class PID {
+class Pid {
 public:
     // Empty constructor
-    PID();
+    Pid();
 
     // Function to initialize the PID controller with specific parameters
     void PIDInit(double controlFrequency);
 
     // Calculate the PID output based on the process variable
-    double PIDcalculate(double processVariable);
+    float PIDcalculate(double processVariable);
 
     // Update the setpoint of the PID controller
     void PIDupdateSetpoint(double setpoint);
