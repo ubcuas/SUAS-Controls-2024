@@ -1,28 +1,26 @@
 #include "Steering.h"
 #include "Arduino.h"
-#include <Servo.h>
-#include <ESP32Servo.h>
+
 
 
 //Define servo motor classes
 Servo leftMotor;
 Servo rightMotor;
-//Change Pulse Width frequency as needed
-#define minUs 1000; 
-#define maxUs 2000;
+
+
 //PWM object
 ESP32PWM pwm;
 
 void motorSetup(){
-  leftMotor.attach(11,minUs,maxUs);
-  rightMotor.attach(12,minUs,maxUs);
-  pwm.attachPin(11,1000); //1Khz - Is this correct?
-  pwm.attachPin(12,1000); //1Khz - Is this correct?
-  leftMotor.setPeriodHertz(50);      // Standard 50hz servo - Is this correct?
-	rightMotor.setPeriodHertz(50);      // Standard 50hz servo - Is this correct?
+  leftMotor.attach(rightPin,minUs,maxUs);
+  rightMotor.attach(leftPin,minUs,maxUs);
+  pwm.attachPin(leftPin,attachFreq); //1Khz - Is this correct?
+  pwm.attachPin(rightPin,attachFreq); //1Khz - Is this correct?
+  leftMotor.setPeriodHertz(servoFreq);      // Standard 50hz servo - Is this correct?
+	rightMotor.setPeriodHertz(servoFreq);      // Standard 50hz servo - Is this correct?
 }
 
-void steering(int yaw){
+void steering(double yaw){
   //This part needs to be fixed. Euler->PID->steering. Change PID to be an angle or multiply value here to get angle?
   int left_motor_value = constrain(left_motor_value, 0, 180);
   int right_motor_value = constrain(right_motor_value, 0, 180);

@@ -28,7 +28,7 @@ void Pid::PIDInit(double controlFrequency){
  * PID Calculate function
  * Parameters:processVariable - The reading from the sensor (feedback signal)
  */
-float Pid::PIDcalculate(double processVariable){
+double Pid::PIDcalculate(double processVariable){
     // Set Error
     error = setpoint - processVariable;
     

@@ -5,14 +5,12 @@
 */
 
 #include <Arduino.h>
-#include <Servo.h>
 #include "sensors.h"
 #include "kalmanfilter.h"
 #include "WebStreamServer.h"
 #include "SDCard.h"
 #include "PID.h"
 #include "Steering.h"
-#include "geoStars.h"
 
 
 
@@ -32,8 +30,6 @@
 #define GPS_POS_STD 2.5 //meters
 
 Pid PID;
-GEO_DATUM datum;
-//GeographicLib::LocalCartesian geoConverter;
 Sensors::sensors mySensor_inst;
 Sensors::sensorData_t sensorData_inst;
 KalmanFilter myKalmanFilter_inst_Z(NUM_STATES, NUM_MEASUREMENTS, NUM_CONTROL_INPUTS, DELTA_T, ACC_Z_STD, BARO_ALT_STD);
@@ -283,6 +279,11 @@ void PIDTesting(){
   float target_lon=0; //Example value to be changed later
   float target_lat=0; //Example value to be changed later
 
+  //To access kalman filter values
+  MatrixXd X_Zaxis = myKalmanFilter_inst_Z.getState();
+  MatrixXd X_Yaxis = myKalmanFilter_inst_Y.getState();
+  MatrixXd X_Xaxis = myKalmanFilter_inst_X.getState();
+
   // Take these GPS and add x,y,z, from kalman filter
   // Lat_Fast = GPS.Fast+X_Moved*ConversionFactor
   int Radius = 6378100;
@@ -291,17 +292,17 @@ void PIDTesting(){
   //Height = current GPS_Position & use kinematics to get new height?
   
   //Get bearing between two sets of coordinates (Euler Angle or using GPS bearings?)
-  double pv = sensorData_inst.imuData.EulerAngles.v2  //process variable from current position
+  double pv = sensorData_inst.imuData.EulerAngles.v2;  //process variable from current position
   //double pv = courseTo(lat_fast,lon_fast,target_lat,target_lon);
 
   //compute PID angle using PID structure
-  int yaw = PID.PIDcalculate(pv);
+  double yaw = PID.PIDcalculate(pv);
 
   //Send to servos
   steering(yaw);
   
   //Print to terminal
-  sprintf(outputBuffer, "Pv: %.5lf \t Error: %.5lf \t Output: %.5lf\t Integral: %.5lf \t \n", pv, PID.error, yaw, PID.integral); 
+  //sprintf(outputBuffer, "Pv: %.5lf \t Error: %.5lf \t Output: %.5lf\t Integral: %.5lf \t \n", pv, PID.error, yaw, PID.integral); 
   SERIAL_PORT.print(outputBuffer);
 }
 
