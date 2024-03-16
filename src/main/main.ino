@@ -195,7 +195,7 @@ void PrintSensorData(){
   MatrixXd X_Zaxis = myKalmanFilter_inst_Z.getState();
   MatrixXd X_Yaxis = myKalmanFilter_inst_Y.getState();
   MatrixXd X_Xaxis = myKalmanFilter_inst_X.getState();
-  snprintf(buffer, sizeof(buffer), "hyu, %.2lf,%.2lf,%.2lf,%.3lf,%.6lf,%.6lf,%.6lf,%.6lf,%.6lf,%.2lf,%d,%d,%.3lf,%.3lf,%.3lf,%.3lf,%.2lf,%.2lf,%.2lf,%.2lf,%.2lf,%.2lf.%2lf\n", 
+  snprintf(buffer, sizeof(buffer), "hyu, %.2lf,%.2lf,%.2lf,%.3lf,%.6lf,%.6lf,%.6lf,%.6lf,%.6lf,%.2lf,%d,%d,%.3lf,%.3lf,%.3lf,%.3lf,%.2lf,%.2lf,%.2lf,%.2lf,%.2lf,%.2lf,%.2lf\n", 
     X_Zaxis(0,0),    //Kalman-pos_Zaxis
     X_Zaxis(1,0),    //Kalman-vel_Zaxis
     sensorData_inst.barometerData.Altitude - sensorData_inst.barometerData.AltitudeOffset,
