@@ -12,12 +12,12 @@ Servo rightMotor;
 ESP32PWM pwm;
 
 void motorSetup(){
-  leftMotor.attach(rightPin,minUs,maxUs);
-  rightMotor.attach(leftPin,minUs,maxUs);
-  pwm.attachPin(leftPin,attachFreq); //1Khz - Is this correct?
-  pwm.attachPin(rightPin,attachFreq); //1Khz - Is this correct?
-  leftMotor.setPeriodHertz(servoFreq);      // Standard 50hz servo - Is this correct?
-	rightMotor.setPeriodHertz(servoFreq);      // Standard 50hz servo - Is this correct?
+  leftMotor.attach(LEFTPIN,MINUS,MAXUS);
+  rightMotor.attach(RIGHTPIN,MINUS,MAXUS);
+  pwm.attachPin(LEFTPIN,ATTACHFREQ); //1Khz - Is this correct?
+  pwm.attachPin(RIGHTPIN,ATTACHFREQ); //1Khz - Is this correct?
+  leftMotor.setPeriodHertz(SERVOFREQ);      // Standard 50hz servo - Is this correct?
+	rightMotor.setPeriodHertz(SERVOFREQ);      // Standard 50hz servo - Is this correct?
 }
 
 void steering(double yaw){

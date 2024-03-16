@@ -7,12 +7,12 @@
 #define _STEERING_H   
 #include <ESP32Servo.h>
 
-#define minUs 1000 
-#define maxUs 2000
-#define leftPin 11
-#define rightPin 12
-#define attachFreq 1000
-#define servoFreq 50
+#define MINUS 1000 
+#define MAXUS 2000
+#define LEFTPIN 11
+#define RIGHTPIN 12
+#define ATTACHFREQ 1000
+#define SERVOFREQ 50
 
 void motorSetup();
 void steering(double yaw);

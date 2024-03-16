@@ -286,9 +286,9 @@ void PIDTesting(){
 
   // Take these GPS and add x,y,z, from kalman filter
   // Lat_Fast = GPS.Fast+X_Moved*ConversionFactor
-  int Radius = 6378100;
-  float lon_fast = sensorData_inst.gpsData.Longitude + X_Xaxis(0,0)*180/Radius/pi;
-  float lat_fast = sensorData_inst.gpsData.Latitude + X_Yaxis(0,0)*180/Radius/pi;
+  float Radius = 6378100;
+  float lon_fast = sensorData_inst.gpsData.Longitude + X_Xaxis(0,0)*180.0/Radius/pi;
+  float lat_fast = sensorData_inst.gpsData.Latitude + X_Yaxis(0,0)*180.0/Radius/pi;
   //Height = current GPS_Position & use kinematics to get new height?
   
   //Get bearing between two sets of coordinates (Euler Angle or using GPS bearings?)
