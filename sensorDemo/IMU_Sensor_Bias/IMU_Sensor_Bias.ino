@@ -280,6 +280,8 @@ void loop()
 {
   static unsigned long startTime = millis(); // Save the biases when the code has been running for two minutes
   static bool biasesStored = false;
+
+  biasesStored = false;
   
   // Read any DMP data waiting in the FIFO
   // Note:
@@ -358,7 +360,7 @@ void loop()
       if (millis() > (startTime + 12000)) // Is it time to store the biases?
       {
         SERIAL_PORT.println(F("\r\n\r\n\r\nSaving bias data..."));
-
+        
         biasStore store;
           
         bool success = (myICM.getBiasGyroX(&store.biasGyroX) == ICM_20948_Stat_Ok);
@@ -407,7 +409,7 @@ void loop()
         {
           SERIAL_PORT.println(F("Bias read failed!\r\n\r\n\r\n"));
         }
-        // startTime = millis();
+        startTime = millis();
       }
     }
       

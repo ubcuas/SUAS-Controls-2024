@@ -12,14 +12,13 @@
 #define SD_SCLK 18
 #define SD_DETECT 17
 
-
-
 namespace SDCard
 {
 
     typedef enum SDCardStatus {   //changed here
     SDCARD_OK,
-    SDCARD_ERROR
+    SDCARD_ERROR,
+    SDCARD_NOTCONNECTED
     } SDCardStatus;
 
     SDCardStatus SDcardInit();

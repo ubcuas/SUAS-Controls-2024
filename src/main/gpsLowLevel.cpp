@@ -50,6 +50,7 @@ gpsLowLevel::GPS_Status gpsLowLevel::fetchAllData(gpsData_t * gpsData_Out){
         //get the X and Y position
         gpsData.Xpos = distanceBetween(gpsData.refLatitude, gpsData.refLongitude, gpsData.refLatitude, gpsData.Longitude);
         gpsData.Ypos = distanceBetween(gpsData.refLatitude, gpsData.refLongitude, gpsData.Latitude, gpsData.refLongitude);
+        // Serial.printf("%f,%f\n", gpsData.Latitude, gpsData.Longitude);
     }
     else{
         //keep the old data just set the lock to false
