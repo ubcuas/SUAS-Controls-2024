@@ -76,8 +76,6 @@ void setup()
 {
   SERIAL_PORT.begin(921600); // Start the serial console
   webStreamServer_inst.init();
-  // webStreamServer_inst.setCustomFunction(mySensor_inst.resetGPSReference());
-  // webStreamServer_inst.setCustomFunction(std::bind(&Sensors::resetGPSReference, &mySensor_inst));
   webStreamServer_inst.setCustomFunction([&]() { mySensor_inst.resetGPSReference(); });
 
   // Initialize the Sensors
@@ -130,6 +128,14 @@ void loop()
   DoKalman();
   PrintSensorData();
 
+  //keep reading battery data
+  // if(mySensor_inst.UpdateBatteryData(&sensorData_inst) != Sensors::SENSORS_OK){
+  //   SERIAL_PORT.println("Battery read failed");
+  // }
+  // else {
+  //    SERIAL_PORT.printf("Battery voltage is: %f\nVoltage Read: %f\nAnalog Read : %d\n", sensorData_inst.batteryData.LipoVoltage, sensorData_inst.batteryData.ReadVoltage, sensorData_inst.batteryData.ReadValue);
+  // }
+  // delay(500);
   //DoCount();
 }
 

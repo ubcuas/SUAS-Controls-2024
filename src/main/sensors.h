@@ -29,16 +29,18 @@
 // BMP 280 CONFIG
 #define BMP_ADDRESS 0x77
 #define BMP_CHIP_ID 0x60
+#define BMP_SDO 15
 #define SEALEVELPRESSURE_HPA (1026.9)
 
 // GPS CONFIG
 #define GPSSERIAL Serial2
-#define GPSBAUDRATE 9600
-#define GPS_RX 2
-#define GPS_TX 4
+#define GPSBAUDRATE 115200
+#define GPS_RX 4
+#define GPS_TX 2
 #define GPS_RATE 1
 
-
+// BATTERY MEASUREMENT
+#define BATTERY_PIN 14
 
 namespace Sensors{
 
@@ -74,11 +76,17 @@ typedef struct{
     float AltitudeOffset;
 } barometerData_t;
 
+typedef struct{
+    uint16_t ReadValue;
+    float ReadVoltage;
+    float LipoVoltage;
+} batteryData_t;
 
 typedef struct{
     imuData_t imuData;
     barometerData_t barometerData;
     gpsData_t gpsData;
+    batteryData_t batteryData;
 } sensorData_t;
 
 typedef enum{
@@ -95,6 +103,7 @@ class sensors{
     sensorData_t sensorData;
     SENSORS_Status_t CalibrateIMULinearAcceleration();
     SENSORS_Status_t CalibrateBarometerAltitude();
+    SENSORS_Status_t UpdateBatteryData(sensorData_t * sensorData_Out);
     void PrintGPSData();
     void resetGPSReference();
 
@@ -123,6 +132,10 @@ class sensors{
     //GPS Functions
     SENSORS_Status_t initGPS();
     SENSORS_Status_t readGPSData();
+
+    //Battery Functions
+    SENSORS_Status_t initBattery();
+    SENSORS_Status_t readBatteryData();
 };
 
 }// namespace Sensors

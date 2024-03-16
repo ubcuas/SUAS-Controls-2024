@@ -13,6 +13,20 @@ using namespace Sensors;
 SENSORS_Status_t sensors::init(){
     SENSORS_Status_t status = SENSORS_OK;
 
+    status = initBattery();
+    if(status != SENSORS_OK){
+        SERIAL_PORT.println("Battery init failed");
+        return status;
+    }
+    // Check of the Lipo Voltage is more than 7.4V
+    readBatteryData();
+    if(sensorData.batteryData.LipoVoltage < 7.4){
+        SERIAL_PORT.printf("Battery voltage is: %f\nVoltage Read: %f\nAnalog Read : %d\n", sensorData.batteryData.LipoVoltage, sensorData.batteryData.ReadVoltage, sensorData.batteryData.ReadValue);
+        SERIAL_PORT.println("Battery voltage is low, please charge the battery");
+        // return SENSORS_FAIL;
+    }
+
+    // Initialize the Wire library for I2C communication
     WIRE_PORT.setPins(I2C_SDA, I2C_SCL);
     WIRE_PORT.begin();
     WIRE_PORT.setClock(400000);
@@ -68,6 +82,18 @@ SENSORS_Status_t sensors::readData_GPS(sensorData_t * sensorData_Out){
     status = readBarometerData();
     // Read the GPS
     status = readGPSData();
+
+    // copy the data to the sensorData struct
+    *sensorData_Out = this->sensorData;
+
+    return status;
+}
+
+SENSORS_Status_t sensors::UpdateBatteryData(sensorData_t * sensorData_Out){
+    SENSORS_Status_t status = SENSORS_OK;
+
+    // Read the battery voltage
+    status = readBatteryData();
 
     // copy the data to the sensorData struct
     *sensorData_Out = this->sensorData;
@@ -187,7 +213,12 @@ SENSORS_Status_t sensors::initIMU(){
 
 SENSORS_Status_t sensors::initBarometer(){
     SENSORS_Status_t status = SENSORS_OK;
+    // Set the BMP address pin to high
+    pinMode(BMP_SDO, OUTPUT);
+    digitalWrite(BMP_SDO, HIGH);
+    delay(100);
 
+    // Initialize the BMP
     unsigned bmpstatus;
     bmpstatus = bmp.begin(BMP_ADDRESS, BMP_CHIP_ID);
     if(!bmpstatus){
@@ -251,12 +282,20 @@ SENSORS_Status_t sensors::initGPS(){
     }
     SERIAL_PORT.println(F("GPS lock successful"));
     //save the reference location
-    sensorData.gpsData.refLatitude = sensorData.gpsData.Latitude;
-    sensorData.gpsData.refLongitude = sensorData.gpsData.Longitude;
+    // sensorData.gpsData.refLatitude = sensorData.gpsData.Latitude;
+    // sensorData.gpsData.refLongitude = sensorData.gpsData.Longitude;
+    resetGPSReference();
     //Print the GPS data
     PrintGPSData();
 
     SERIAL_PORT.println("GPS init successful");
+    return status;
+}
+
+SENSORS_Status_t sensors::initBattery(){
+    SENSORS_Status_t status = SENSORS_OK;
+    //set the resolution to 12 bits (0-4096)
+    analogReadResolution(12); 
     return status;
 }
 
@@ -415,6 +454,15 @@ SENSORS_Status_t sensors::readGPSData(){
     }
     //copy the data to the sensorData struct
     gps.fetchAllData(&sensorData.gpsData);
+    return status;
+}
+
+SENSORS_Status_t sensors::readBatteryData(){
+    SENSORS_Status_t status = SENSORS_OK;
+    // Read the battery voltage
+    sensorData.batteryData.ReadValue = analogRead(BATTERY_PIN);
+    sensorData.batteryData.ReadVoltage = sensorData.batteryData.ReadValue * (3.452 / 4095.0);
+    sensorData.batteryData.LipoVoltage = sensorData.batteryData.ReadVoltage * (57.6 + 21.45) / (21.45);
     return status;
 }
 
