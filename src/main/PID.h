@@ -13,7 +13,7 @@
 #ifndef _PID_H    
 #define _PID_H
 
-#define initialSetpoint 0.0 
+#define INITIALSETPOINT 0.0 
 #define MAX_OUTPUT 255.0
 #define MIN_OUTPUT -255.0
 #define DEFAULT_KP 1.0
@@ -42,7 +42,7 @@ private:
   double KP = DEFAULT_KP;
   double KI = DEFAULT_KI;
   double KD = DEFAULT_KD;
-  double setpoint=initialSetpoint;
+  double setpoint=INITIALSETPOINT;
   double error=0;
   double output=0;
   double prevError=0;

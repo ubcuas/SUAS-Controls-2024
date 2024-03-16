@@ -7,23 +7,27 @@
 Servo leftMotor;
 Servo rightMotor;
 
-
-//PWM object
-ESP32PWM pwm;
-
 void motorSetup(){
+  ESP32PWM::allocateTimer(0);
+	ESP32PWM::allocateTimer(1);
+	ESP32PWM::allocateTimer(2);
+	ESP32PWM::allocateTimer(3);
   leftMotor.attach(LEFTPIN,MINUS,MAXUS);
   rightMotor.attach(RIGHTPIN,MINUS,MAXUS);
-  pwm.attachPin(LEFTPIN,ATTACHFREQ); //1Khz - Is this correct?
-  pwm.attachPin(RIGHTPIN,ATTACHFREQ); //1Khz - Is this correct?
-  leftMotor.setPeriodHertz(SERVOFREQ);      // Standard 50hz servo - Is this correct?
-	rightMotor.setPeriodHertz(SERVOFREQ);      // Standard 50hz servo - Is this correct?
+  leftMotor.setPeriodHertz(SERVOFREQ);      // Standard 50hz servo
+	rightMotor.setPeriodHertz(SERVOFREQ);      // Standard 50hz servo
+  leftMotor.write(90);
+  rightMotor.write(90);
 }
 
 void steering(double yaw){
   //This part needs to be fixed. Euler->PID->steering. Change PID to be an angle or multiply value here to get angle?
-  int left_motor_value = constrain(left_motor_value, 0, 180);
-  int right_motor_value = constrain(right_motor_value, 0, 180);
+  //-x to +x ->Map from 0 to 180 ->change double to int
+  //-x to +x ->Map from 0 to 180 ->change double to int
+  //pv is the value that we observe, setpoint is what we want course to be.
+  //Set setpoint, then update pv.
+  int left_motor_value = map(yaw,-1000,1000,0,180);
+  int right_motor_value = map(yaw,-1000,1000,0,180);
  
  
   Serial.print(left_motor_value);Serial.print("\t");

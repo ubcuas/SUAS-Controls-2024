@@ -7,10 +7,10 @@
 #define _STEERING_H   
 #include <ESP32Servo.h>
 
-#define MINUS 1000 
-#define MAXUS 2000
-#define LEFTPIN 11
-#define RIGHTPIN 12
+#define MINUS 450
+#define MAXUS 2450
+#define LEFTPIN 26
+#define RIGHTPIN 27
 #define ATTACHFREQ 1000
 #define SERVOFREQ 50
 
