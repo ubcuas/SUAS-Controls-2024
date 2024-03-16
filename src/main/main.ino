@@ -221,13 +221,13 @@ void PrintSensorData(){
     sensorData_inst.imuData.EulerAngles.v2  //yaw
   );
 
-  snprintf(buffer1, sizeof(buffer1), "hyu, %.2lf,%.2lf,%.2lf,%.2lf,%.2lf,%.2lf,%.6lf,%.6lf,%.2lf,%d,%d\n", 
+  snprintf(buffer1, sizeof(buffer1), "hyu, %.2lf,%.2lf,%.2lf,%.6lf,%.6lf,%.2lf,%d,%d\n", //hyu, %.2lf,%.2lf,%.2lf,%.2lf,%.2lf,%.2lf,%.6lf,%.6lf,%.2lf,%d,%d\n
     X_Xaxis(0,0),    //Kalman-pos_Xaxis
     X_Yaxis(0,0),    //Kalman-pos_Yaxis
     X_Zaxis(0,0),    //Kalman-pos_Zaxis
-    X_Xaxis(1,0),    //Kalman-vel_Xaxis
-    X_Yaxis(1,0),    //Kalman-vel_Yaxis
-    X_Zaxis(1,0),     //Kalman-vel_Zaxis
+    // X_Xaxis(1,0),    //Kalman-vel_Xaxis
+    // X_Yaxis(1,0),    //Kalman-vel_Yaxis
+    // X_Zaxis(1,0),     //Kalman-vel_Zaxis
     sensorData_inst.gpsData.Latitude, 
     sensorData_inst.gpsData.Longitude, 
     sensorData_inst.gpsData.Altitude,
@@ -235,7 +235,7 @@ void PrintSensorData(){
     sensorData_inst.gpsData.satellites
   );
   // Send the data to all connected WebSocket clients
-  if(millis() - time > 50){
+  if(millis() - time > 120){
     time = millis();
     if(webStreamServer_inst.send(buffer1) == WebStreamServer::SUCCESS){
     //SERIAL_PORT.println(mycounter);
