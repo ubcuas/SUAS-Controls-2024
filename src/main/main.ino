@@ -5,14 +5,13 @@
 */
 
 #include <Arduino.h>
+#include <TinyGPSPlus.h>
 #include "sensors.h"
 #include "kalmanfilter.h"
 #include "WebStreamServer.h"
 #include "SDCard.h"
 #include "PID.h"
 #include "Steering.h"
-#include "TinyGPS++.h"
-
 
 #define BufferLen 150
 
@@ -29,6 +28,7 @@
 #define BARO_ALT_STD 1.466 //meters
 #define GPS_POS_STD 2.5 //meters
 
+TinyGPSPlus GPS;
 Pid PID;
 Sensors::sensors mySensor_inst;
 Sensors::sensorData_t sensorData_inst;
@@ -293,7 +293,7 @@ void PIDTesting(){
   //Height = current GPS_Position & use kinematics to get new height? To be done
   
   //Get process variable - pv is the error between (lot & lat_fast direction)-(target) / current heading-target heading
-  double pv = courseTo(lat_fast,lon_fast,target_lat,target_lon)-sensorData_inst.imuData.EulerAngles.v2;
+  double pv = GPS.courseTo(lat_fast,lon_fast,target_lat,target_lon)-sensorData_inst.imuData.EulerAngles.v2;
 
   //compute PID angle using process variable
   double motor_value = PID.PIDcalculate(pv);
