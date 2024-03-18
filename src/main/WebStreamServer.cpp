@@ -39,6 +39,11 @@ WebStreamServer::WebStreamServerState WebStreamServer::init(){
     
     SERIAL_PORT.print("\nDevice Connected!\nAP IP address: ");
     SERIAL_PORT.println(IP);
+    SERIAL_PORT.print("SSID: ");
+    SERIAL_PORT.println(this->ssid);
+    SERIAL_PORT.print("Pass: ");
+    SERIAL_PORT.println(this->password);
+    
     delay(1000);
 
     // WebSocket Event Handler with correct lambda capture

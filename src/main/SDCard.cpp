@@ -12,6 +12,15 @@ namespace SDCard
     */
     SDCardStatus SDcardInit()
     {
+        //configure the SD card detect pin as digital input:
+        pinMode(SD_DETECT, INPUT);
+        delay(10);
+        
+        if(digitalRead(SD_DETECT)){
+          Serial.println("SD Card Not Plugged in!!\n");
+          return SDCARD_NOTCONNECTED;
+        }
+
         spi_1.begin(SD_SCLK, SD_MISO, SD_MOSI, SD_CS);
 
         if (!SD.begin(SD_CS, spi_1, 16000000))
@@ -30,7 +39,10 @@ namespace SDCard
      * @return SDCardStatus 
      */
     SDCardStatus SDcardWrite(const char data[])
-    {
+    { 
+        if(digitalRead(SD_DETECT)){
+          return SDCARD_NOTCONNECTED;
+        }
         File file = SD.open("/data.txt", FILE_APPEND);
         if (!file)
         {
