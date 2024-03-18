@@ -96,7 +96,7 @@ typedef enum{
 
 class sensors{
     public:
-    sensors(): gps(&GPSSERIAL, GPSBAUDRATE, GPS_RATE, GPS_RX, GPS_TX){};
+    sensors(): gps(&GPSSERIAL, GPSBAUDRATE, GPS_RATE, GPS_RX, GPS_TX){}; 
     SENSORS_Status_t init();
     SENSORS_Status_t readData_noGPS(sensorData_t * sensorData_Out);
     SENSORS_Status_t readData_GPS(sensorData_t * sensorData_Out);

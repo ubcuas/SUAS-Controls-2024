@@ -5,10 +5,15 @@
 */
 
 #include <Arduino.h>
+#include <TinyGPSPlus.h>
 #include "sensors.h"
 #include "kalmanfilter.h"
 #include "WebStreamServer.h"
 #include "SDCard.h"
+#include "PID.h"
+#include "Steering.h"
+
+#define BufferLen 150
 
 #define ACQUIRE_RATE 57.0 //Hz
 #define DELTA_T (1.0f / ACQUIRE_RATE) //seconds
@@ -23,6 +28,8 @@
 #define BARO_ALT_STD 1.466 //meters
 #define GPS_POS_STD 2.5 //meters
 
+TinyGPSPlus GPS;
+Pid PID;
 Sensors::sensors mySensor_inst;
 Sensors::sensorData_t sensorData_inst;
 KalmanFilter myKalmanFilter_inst_Z(NUM_STATES, NUM_MEASUREMENTS, NUM_CONTROL_INPUTS, DELTA_T, ACC_Z_STD, BARO_ALT_STD);
@@ -100,8 +107,11 @@ void setup()
   myKalmanFilter_inst_X.initialize();
   
   if(SDCard::SDcardInit() != SDCard::SDCARD_OK){
-    Serial.println("SD card failed");
+    SERIAL_PORT.println("SD card failed");
   }
+  //Initializes PID object
+  PID.PIDInit(ACQUIRE_RATE);
+  motorSetup(); //Initialize two servo motors
 
   delay(1000);
   timeStart = millis();
@@ -127,6 +137,7 @@ void loop()
 
   DoKalman();
   PrintSensorData();
+  PIDTesting();
 
   //keep reading battery data
   // if(mySensor_inst.UpdateBatteryData(&sensorData_inst) != Sensors::SENSORS_OK){
@@ -242,7 +253,6 @@ void PrintSensorData(){
     //mycounter++;
   }
   }
-
   SDCard::SDCardStatus SDWriteStatus = SDCard::SDcardWrite(buffer);
   if(SDWriteStatus == SDCard::SDCARD_ERROR){ //only alert if the writing failed for some reason.
     Serial.println("SD card write failed");
@@ -260,6 +270,38 @@ void DoCount(){
   else{
     i++;
   }
+}
+
+void PIDTesting(){
+  char outputBuffer[BufferLen]; //This is for printing values out to terminal
+  float target_lon=0; //Example target longitude
+  float target_lat=0; //Example target latitude
+
+  //To access kalman filter values for current x,y,&z direction
+  MatrixXd X_Zaxis = myKalmanFilter_inst_Z.getState();
+  MatrixXd X_Yaxis = myKalmanFilter_inst_Y.getState();
+  MatrixXd X_Xaxis = myKalmanFilter_inst_X.getState();
+
+  // Take current GPS coordinates and add x,y,z, from kalman filter
+  // Lat_Fast = GPS.Fast+X_Moved*ConversionFactor
+  //radius_calc= 180*radius of earth/pi
+  float radius_calc = 365438211.3124;
+  float lon_fast = sensorData_inst.gpsData.Longitude + X_Xaxis(0,0)*radius_calc;
+  float lat_fast = sensorData_inst.gpsData.Latitude + X_Yaxis(0,0)*radius_calc;
+  //Height = current GPS_Position & use kinematics to get new height? To be done
+  
+  //Get process variable - pv is the error between (lot & lat_fast direction)-(target) / current heading-target heading
+  double pv = GPS.courseTo(lat_fast,lon_fast,target_lat,target_lon)-sensorData_inst.imuData.EulerAngles.v2;
+
+  //compute PID angle using process variable
+  double motor_value = PID.PIDcalculate(pv);
+
+  //Send to servos
+  steering(motor_value);
+  
+  //Print to terminal
+  //sprintf(outputBuffer, "Pv: %.5lf \t Error: %.5lf \t Output: %.5lf\t Integral: %.5lf \t \n", pv, PID.error, yaw, PID.integral); 
+  SERIAL_PORT.print(outputBuffer);
 }
 
 void OLD_PRINT(){
