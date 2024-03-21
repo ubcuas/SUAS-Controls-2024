@@ -188,8 +188,8 @@ private:
     AsyncWebServer server;
     AsyncWebSocket ws;
     bool connected = false;
-    const char* ssid = "Nischay_iphone";
-    const char* password = "r18nmbr4";
+    const char* ssid = "Bobsy_phone";
+    const char* password = "pppp0987";
     CustomFunction customFunction;
 };
 

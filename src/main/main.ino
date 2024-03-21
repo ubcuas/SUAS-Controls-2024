@@ -276,8 +276,8 @@ void DoCount(){
 
 void PIDTesting(){
   char outputBuffer[BufferLen]; //This is for printing values out to terminal
-  float target_lon=0; //Example target longitude
-  float target_lat=0; //Example target latitude
+  float target_lon=-123.24746; //Example target longitude of bookstore
+  float target_lat=49.261224; //Example target latitude of bookstore
 
   //To access kalman filter values for current x,y,&z direction
   MatrixXd X_Zaxis = myKalmanFilter_inst_Z.getState();
