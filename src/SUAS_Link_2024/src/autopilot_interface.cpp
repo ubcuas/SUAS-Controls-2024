@@ -238,26 +238,26 @@ Mavlink_Messages Autopilot_Interface::read_messages()
         }
 
         received_all = 
-        		//this_timestamps.heartbeat                  &&
-				// this_timestamps.battery_status             &&
-				// this_timestamps.radio_status               &&
-				// this_timestamps.local_position_ned         &&
-				// this_timestamps.global_position_int        &&
-				// this_timestamps.position_target_local_ned  &&
-				// this_timestamps.position_target_global_int &&
-				// this_timestamps.highres_imu                &&
-				this_timestamps.attitude
-                // this_timestamps.attitude_quaternion        &&
-                // this_timestamps.estimator_status           &&
-                // this_timestamps.odometry                   &&
-                // this_timestamps.vibration                  &&
-                // this_timestamps.altitude                   &&
-                // this_timestamps.gps_rtk                    &&
-                // this_timestamps.gps_global_origin          &&
-                // this_timestamps.gps_raw                    &&
-                // this_timestamps.gps_status                 &&
-                // this_timestamps.wind                       &&
-				//this_timestamps.sys_status
+        		this_timestamps.heartbeat                  &&
+				this_timestamps.battery_status             &&
+				this_timestamps.radio_status               &&
+				this_timestamps.local_position_ned         &&
+				this_timestamps.global_position_int        &&
+				this_timestamps.position_target_local_ned  &&
+				this_timestamps.position_target_global_int &&
+				this_timestamps.highres_imu                &&
+				this_timestamps.attitude                   &&
+                this_timestamps.attitude_quaternion        &&
+                this_timestamps.estimator_status           &&
+                this_timestamps.odometry                   &&
+                this_timestamps.vibration                  &&
+                this_timestamps.altitude                   &&
+                this_timestamps.gps_rtk                    &&
+                this_timestamps.gps_global_origin          &&
+                this_timestamps.gps_raw                    &&
+                this_timestamps.gps_status                 &&
+                this_timestamps.wind                       &&
+				this_timestamps.sys_status
 				;
     }
 

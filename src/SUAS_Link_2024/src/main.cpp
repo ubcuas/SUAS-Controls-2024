@@ -3,6 +3,7 @@
 #include <Arduino.h>
 #include <HardwareSerial.h>
 #include <common/mavlink.h>
+#include <ESP32Servo.h>
 
 // #include <Streaming.h>
 // #include <SPI.h>
@@ -15,8 +16,13 @@
 #include "linker.h"
 #include "autopilot_interface.h"
 
-HardwareSerial PiSerial(2); // UART2
+HardwareSerial PiSerial(1); // UART2
 HardwareSerial CubeSerial(2); // UART2
+
+Servo servo_front_R;
+Servo servo_back_R;
+Servo servo_front_L;
+Servo servo_back_L;
 
 Linker linker;
 Autopilot_Interface pixhawk(&linker);
@@ -26,6 +32,18 @@ void setup() {
     PiSerial.begin(15200, SERIAL_8N1, 4, 2); 
     CubeSerial.begin(57600, SERIAL_8N1, 16, 17);
     delay(1000);
+
+    pinMode(LED_RED, OUTPUT);
+    pinMode(LED_BLUE, OUTPUT);
+    digitalWrite(LED_RED, HIGH);
+    digitalWrite(LED_BLUE, HIGH);
+
+    servo_front_R.attach(SERVO_FRONT_R);
+    servo_back_R.attach(SERVO_BACK_R);
+    servo_front_L.attach(SERVO_FRONT_L);
+    servo_back_L.attach(SERVO_BACK_L);
+
+    Serial.println("\nReady! :D");
 }
 
 Mavlink_Messages msg;
@@ -38,34 +56,52 @@ Drop_State des_drop_state;
 
 void loop() {
 
-    // TODO: put some timeouts on this thing!!
+    // // TODO: put some timeouts on this thing!!
 
-    // Read drop point and bottle number from Pi
-    drop_state_str = "";
-    while (drop_state_str == "") {
-        if (PiSerial.available() > 0) {
-            drop_state_str = Serial.readStringUntil('\n');
-        }
-    }
-    drop_state.lat = drop_state_str.substring(0, 5).toDouble();
-    drop_state.lon = drop_state_str.substring(5, 10).toDouble();
-    drop_state.heading = drop_state_str.substring(10, 15).toDouble();
+    // // Read drop point and bottle number from Pi
+    // drop_state_str = "";
+    // while (drop_state_str == "") {
+    //     if (PiSerial.available() > 0) {
+    //         drop_state_str = PiSerial.readStringUntil('\n');
+    //     }
+    // }
+    // drop_state.lat = drop_state_str.substring(0, 5).toDouble();
+    // drop_state.lon = drop_state_str.substring(5, 10).toDouble();
+    // drop_state.heading = drop_state_str.substring(10, 15).toDouble();
 
-    bottle_num = drop_state_str.substring(15, 16).toInt();
+    // bottle_num = drop_state_str.substring(15, 16).toInt();
 
     // Read wind speed
     msg = pixhawk.read_messages();
-    Serial.println(msg.heartbeat.system_status);
-    wind[0] = msg.wind.wind_x;
-    wind[1] = msg.wind.wind_y;
-    wind[2] = msg.wind.wind_z;
+    // Serial.println(msg.heartbet.system_status);
+    // Serial.println(msg.global_position_int.lat);
+    // Serial.println(msg.attitude.pitch);
+    Serial.println(msg.sys_status.onboard_control_sensors_enabled);
 
-    des_drop_state = calc_des_drop_state(wind, drop_state, &des_drop_state);
+    // wind[0] = msg.wind.wind_x;
+    // wind[1] = msg.wind.wind_y;
+    // wind[2] = msg.wind.wind_z;
 
-    // Send message to Pi
-    PiSerial.println(String(des_drop_state.lat) + "," + String(des_drop_state.lon) + "," + String(des_drop_state.heading));
+    // des_drop_state = calc_des_drop_state(wind, drop_state, &des_drop_state);
 
-    // TODO: Monitor until close enough to drop point and relese payload
+    // // Send message to Pi
+    // PiSerial.println(String(des_drop_state.lat) + "," + String(des_drop_state.lon) + "," + String(des_drop_state.heading));
+
+    // // TODO: Monitor until close enough to drop point and relese payload
+
+    // servo_front_R.write(0);
+    // servo_back_R.write(0);
+    // servo_front_L.write(0);
+    // servo_back_L.write(0);0]'
+    // delay(1000);
+
+    // servo_front_R.write(180);
+    // servo_back_R.write(180);
+    // servo_front_L.write(180);
+    // servo_back_L.write(180);
+    // delay(1000);
+
+
 
 }
 

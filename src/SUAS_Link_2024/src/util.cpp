@@ -8,8 +8,29 @@ Drop_State::Drop_State() {
 }
 
 // Approximations
-double metersToLatitude(double meters) { return meters / 111320.0; }
-double metersToLongitude(double meters, double latitude) { return meters / (111320.0 * cos(latitude * M_PI/180.0)); }
+double metersToLatitude(double meters) { 
+    return meters / M_PER_LAT_DEG; 
+}
+
+double metersToLongitude(double meters, double latitude) { 
+    return meters / (M_PER_LAT_DEG * cos(latitude * M_PI/180.0)); 
+}
+
+double latitudeToMeters(double latitude) {
+    return latitude * M_PER_LAT_DEG;
+}
+
+double longitudeToMeters(double longitude, double latitude) {
+    double meters_per_degree_lon = M_PER_LAT_DEG * cos(latitude * PI / 180.0);
+    return longitude * meters_per_degree_lon;
+}
+
+// Function to calculate the distance between two GPS points (approximation for short distances) using Pythagorean
+double distance(double lat1, double lon1, double lat2, double lon2) {
+    double dlat_m = latitudeToMeters(lat2 - lat1);
+    double dlon_m = longitudeToMeters(lon2 - lon1, (lat1 + lat2)/2); // Use average latitude, probably doesn't make a difference though
+    return sqrt(dlat_m*dlat_m + dlon_m*dlon_m);
+}
 
 /*
  * Calculate desired drop state
