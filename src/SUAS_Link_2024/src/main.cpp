@@ -35,8 +35,6 @@ void setup() {
 
     pinMode(LED_RED, OUTPUT);
     pinMode(LED_BLUE, OUTPUT);
-    digitalWrite(LED_RED, HIGH);
-    digitalWrite(LED_BLUE, HIGH);
 
     servo_front_R.attach(SERVO_FRONT_R);
     servo_back_R.attach(SERVO_BACK_R);
@@ -51,9 +49,10 @@ void setup() {
         linker.request_msg(MAVLINK_MSG_ID_HIGH_LATENCY2, 1);
         delay(200);
     }
-    
 
-    Serial.println("\n\nReady! :D");
+    digitalWrite(LED_RED, HIGH);
+    digitalWrite(LED_BLUE, HIGH);
+    Serial.println("\n\nReady!");
 }
 
 Mavlink_Messages msg;
@@ -65,8 +64,6 @@ double wind[3]; // Wind speed (m/s) in x, y, z (NED)
 Drop_State des_drop_state;
 
 void loop() {
-
-    // // TODO: put some timeouts on this thing!!
 
     // // Read drop point and bottle number from Pi
     // drop_state_str = "";

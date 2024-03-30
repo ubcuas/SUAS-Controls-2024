@@ -129,6 +129,7 @@ struct Mavlink_Messages {
     // Wind
     mavlink_wind_cov_t wind;
 
+    // High Latency 2 (gives a variety of data including wind speed and direction)
     mavlink_high_latency2_t high_latency2;
 
 	// Time Stamps
