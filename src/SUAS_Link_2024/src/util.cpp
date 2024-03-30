@@ -2,7 +2,7 @@
 #include "params.h"
 #include "linker.h"
 
-Drop_State::Drop_State() {
+Drop_State::Drop_State() { // Deprecated
     lat = 0;
     lon = 0;
     heading = 0;
@@ -39,14 +39,16 @@ double distance(double lat1, double lon1, double lat2, double lon2) {
  * @param drop_state Communicated by software team from Pi
  * @param des_drop_state
  */
-Drop_State calc_des_drop_state(double* wind_speed, Drop_State drop_state, Drop_State* des_drop_state) {
+void calc_des_drop_state(double windspeed, double wind_heading, struct_message drop_data, struct_message* des_drop_data) {
 
     // TODO: assuming heading is degrees CW from north
     // x is North (lat), y is East (lon)
-    double x_offset = wind_speed[0] * DRIFT_FACTOR + AIRCRAFT_SPEED * cos(drop_state.heading * M_PI/180.0) * RELEASE_DELAY;
-    double y_offset = wind_speed[1] * DRIFT_FACTOR + AIRCRAFT_SPEED * sin(drop_state.heading * M_PI/180.0) * RELEASE_DELAY;
+    double windspeed_x = windspeed * cos(wind_heading * M_PI/180.0);
+    double windspeed_y = windspeed * sin(wind_heading * M_PI/180.0);
 
-    des_drop_state->lat = drop_state.lat - metersToLatitude(x_offset);
-    des_drop_state->lon = drop_state.lon - metersToLongitude(y_offset, des_drop_state->lat);
-    
+    double x_offset = windspeed_x * DRIFT_FACTOR + AIRCRAFT_SPEED * cos(drop_data.heading * M_PI/180.0) * RELEASE_DELAY;
+    double y_offset = windspeed_y * DRIFT_FACTOR + AIRCRAFT_SPEED * sin(drop_data.heading * M_PI/180.0) * RELEASE_DELAY;
+
+    des_drop_data->lat = drop_data.lat - metersToLatitude(x_offset);
+    des_drop_data->lon = drop_data.lon - metersToLongitude(y_offset, des_drop_data->lat);  
 }

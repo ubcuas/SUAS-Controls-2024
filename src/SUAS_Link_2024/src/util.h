@@ -1,13 +1,15 @@
 #ifndef UTIL_H
 #define UTIL_H
 
-class Drop_State {
+#include "Sender.h"
+
+class Drop_State { // deprecated
     public:
         Drop_State();
         double lat, lon, heading;
 };
 
-Drop_State calc_des_drop_state(double* wind_speed, Drop_State drop_state, Drop_State* des_drop_state);
+void calc_des_drop_state(double windspeed, double wind_heading, struct_message drop_data, struct_message* des_drop_data);
 
 
 double metersToLatitude(double meters);

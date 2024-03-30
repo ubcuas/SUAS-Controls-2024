@@ -27,7 +27,7 @@ class Linker
         void stop();
     
     private:
-        bool debug = true;
+        bool debug = false;
         
         mavlink_status_t lastStatus;
         bool is_open;
