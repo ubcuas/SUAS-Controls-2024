@@ -76,12 +76,37 @@ int Linker::read_message(mavlink_message_t &message)
 
 int Linker::write_message(const mavlink_message_t &message)
 {
-    char buf[300];
+    uint8_t buf[MAVLINK_MAX_PACKET_LEN];
 
-    unsigned len = mavlink_msg_to_send_buffer((uint8_t*)buf, &message);
-    CubeSerial.write(buf);
+    uint8_t len = mavlink_msg_to_send_buffer(buf, &message);
+    CubeSerial.write(buf, len);
 
     return len;
+}
+
+/*
+ * Packs a message and sends to Cube to request a message type from Cube
+ * https://mavlink.io/en/messages/common.html#MAV_DATA_STREAM
+ * https://github.com/mavlink/c_library_v2/blob/103b846f287b9258f175e5c98ff9184e23d3cb39/common/mavlink_msg_command_long.h
+ * 
+ * @param msg_id
+ * @param frequency in Hz
+ */
+void Linker::request_msg(int msg_id, int frequency) {
+    mavlink_message_t request;
+    mavlink_msg_command_long_pack(
+        0, // system_id (anything but 1 or 255)
+        0, // component_id (random)
+        &request, 
+        1, // target_system
+        0, // target_component
+        MAV_CMD_SET_MESSAGE_INTERVAL, // command
+        0, // confirmation
+        msg_id, // ID of message requested
+        1000000/frequency, // 10 Hz
+        0, 0, 0, 0, 0 // Other stuff we don't need
+    );
+    write_message(request);
 }
 
 void Linker::stop()

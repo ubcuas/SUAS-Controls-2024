@@ -1,5 +1,6 @@
 #include "util.h"
 #include "params.h"
+#include "linker.h"
 
 Drop_State::Drop_State() {
     lat = 0;

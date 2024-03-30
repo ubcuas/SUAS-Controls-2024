@@ -43,7 +43,17 @@ void setup() {
     servo_front_L.attach(SERVO_FRONT_L);
     servo_back_L.attach(SERVO_BACK_L);
 
-    Serial.println("\nReady! :D");
+    // Request message types
+    for (int i=0; i<5; i++) {
+        linker.request_msg(MAVLINK_MSG_ID_GLOBAL_POSITION_INT, 1);
+        delay(200);
+        // linker.request_msg(MAVLINK_MSG_ID_WIND_COV, 1);
+        linker.request_msg(MAVLINK_MSG_ID_HIGH_LATENCY2, 1);
+        delay(200);
+    }
+    
+
+    Serial.println("\n\nReady! :D");
 }
 
 Mavlink_Messages msg;
@@ -73,10 +83,12 @@ void loop() {
 
     // Read wind speed
     msg = pixhawk.read_messages();
-    // Serial.println(msg.heartbet.system_status);
-    // Serial.println(msg.global_position_int.lat);
+    // Serial.println(msg.heartbeat.system_status);
+    Serial.println(msg.global_position_int.lat);
+    // Serial.println(msg.wind.wind_x);
+    Serial.println(msg.high_latency2.windspeed);
     // Serial.println(msg.attitude.pitch);
-    Serial.println(msg.sys_status.onboard_control_sensors_enabled);
+    // Serial.println(msg.sys_status.onboard_control_sensors_enabled);
 
     // wind[0] = msg.wind.wind_x;
     // wind[1] = msg.wind.wind_y;
