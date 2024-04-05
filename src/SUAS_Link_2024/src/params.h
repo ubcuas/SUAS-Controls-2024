@@ -5,6 +5,7 @@
 
 #include <Arduino.h>
 
+#define CUBE_BAUD_RATE 57600
 extern HardwareSerial PiSerial;
 extern HardwareSerial CubeSerial;
 

@@ -35,7 +35,8 @@ double distance(double lat1, double lon1, double lat2, double lon2) {
 
 /*
  * Calculate desired drop state
- * @param wind_speed Passed by pointer, plz don't modify
+ * @param windspeed
+ * @param wind_heading
  * @param drop_state Communicated by software team from Pi
  * @param des_drop_state
  */
@@ -51,4 +52,6 @@ void calc_des_drop_state(double windspeed, double wind_heading, struct_message d
 
     des_drop_data->lat = drop_data.lat - metersToLatitude(x_offset);
     des_drop_data->lon = drop_data.lon - metersToLongitude(y_offset, des_drop_data->lat);  
+    des_drop_data->heading = drop_data.heading;
+    des_drop_data->bottleID = drop_data.bottleID;
 }

@@ -31,7 +31,7 @@ class Linker
         
         mavlink_status_t lastStatus;
         bool is_open;
-        int baudrate = 57600;
+        int baudrate = CUBE_BAUD_RATE;
 };
 
 #endif

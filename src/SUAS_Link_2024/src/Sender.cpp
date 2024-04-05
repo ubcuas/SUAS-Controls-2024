@@ -85,6 +85,7 @@ bool broadcastMessage(struct_message myData){
  * @return struct_message 
 */
 struct_message recieveData(){
+  digitalWrite(LED_BLUE, HIGH);
   struct_message myData;
   int index = 0;
   while (PiSerial.available() == 0) {} // This is a blocking function
@@ -112,6 +113,7 @@ struct_message recieveData(){
   myData.lon = lon;
   myData.heading = heading;
   myData.bottleID = bottleID;
+  digitalWrite(LED_BLUE, LOW);
   return myData;
 }
 

@@ -24,8 +24,8 @@ Autopilot_Interface pixhawk(&linker);
 
 void setup() {
     Serial.begin(57600);
-    PiSerial.begin(115200, SERIAL_8N1, 4, 2); 
-    CubeSerial.begin(57600, SERIAL_8N1, 16, 17);
+    PiSerial.begin(57600, SERIAL_8N1, 4, 2); 
+    CubeSerial.begin(CUBE_BAUD_RATE, SERIAL_8N1, 16, 17);
 
     pinMode(LED_RED, OUTPUT);
     pinMode(LED_BLUE, OUTPUT);
@@ -72,61 +72,53 @@ void setup() {
         delay(250);
     }
     digitalWrite(LED_BLUE, LOW); // Blue LED off indicates everything ready
+    delay(1000);
     Serial.println("\n\nReady!");
 }
 
 Mavlink_Messages msg;
 struct_message drop_data; // From Pi
 struct_message des_drop_data;
+char buffer[100]; // For printing things
 
 void loop() {
 
     // Read drop point and bottle number from Pi (blocking)
     // drop_data = recieveData();
-    drop_data.lon = -123.2478006; // For testing
+    drop_data.lon = -123.2478006; // For testing REMOVE LATER!!!!!!!!!!!!!!!!!!!!!!!
     drop_data.lat = 49.2624333;
     drop_data.heading = 0.0;
     drop_data.bottleID = 1;
-    des_drop_data.bottleID = 1;
+
     bool notDropped = true;
-    Serial.println("Received data from Pi");
-    Serial.print(
-        String(drop_data.lat) + "," + 
-        String(drop_data.lon) + "," + 
-        String(drop_data.heading) + "," + 
-        String(drop_data.bottleID) + "\n"
-    );
+    snprintf(buffer, sizeof(buffer), "Received data from Pi: %.8f,%.8f,%.2f,%d\n", drop_data.lat, drop_data.lon, drop_data.heading, drop_data.bottleID); Serial.print(buffer);
 
-    // Read wind speed
-    msg = pixhawk.read_messages();
-    double windspeed = msg.high_latency2.windspeed;
-    double wind_heading = msg.high_latency2.wind_heading;
-    Serial.println("Wind: " + String(windspeed) + ", " + String(wind_heading));
+    // // Read wind speed
+    // msg = pixhawk.read_messages();
+    // double windspeed = msg.high_latency2.windspeed;
+    // double wind_heading = msg.high_latency2.wind_heading;
+    // Serial.println("Wind: " + String(windspeed) + ", " + String(wind_heading));
+    // calc_des_drop_state(windspeed, wind_heading, drop_data, &des_drop_data);
 
-    calc_des_drop_state(windspeed, wind_heading, drop_data, &des_drop_data);
-
+    calc_des_drop_state(0, 0, drop_data, &des_drop_data); // TODO: REMOVE LATER!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+    Serial.println(latitudeToMeters(des_drop_data.lat)-latitudeToMeters(drop_data.lat));
+    Serial.println(latitudeToMeters(des_drop_data.lon)-latitudeToMeters(drop_data.lon));
+    
     // Send desired drop point to Pi
-    PiSerial.print(
-        String(des_drop_data.lat) + "," + 
-        String(des_drop_data.lon) + "," + 
-        String(des_drop_data.heading) + "," + 
-        String(des_drop_data.bottleID) + "\n"
-    );
-    Serial.println("Sent desired drop point to Pi");
-    Serial.print(
-        String(des_drop_data.lat) + "," + 
-        String(des_drop_data.lon) + "," + 
-        String(des_drop_data.heading) + "," + 
-        String(des_drop_data.bottleID) + "\n"
-    );
+    snprintf(buffer, sizeof(buffer), "%.8f,%.8f,%.2f,%d\n", des_drop_data.lat, des_drop_data.lon, des_drop_data.heading, des_drop_data.bottleID);
+    PiSerial.print(buffer);
+    Serial.print("Sent desired drop point to Pi: "); Serial.print(buffer);
+
+    notDropped = false; // REMOVE THIS LATER!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
     // Wait to get close enough to desired drop point
+    digitalWrite(LED_RED, HIGH);
     while (notDropped) {
         // Read GPS coordinates
         msg = pixhawk.read_messages();
         double lat = (double) msg.global_position_int.lat / 10000000.0;
         double lon = (double) msg.global_position_int.lon / 10000000.0;
-        Serial.println("Coords: " + String(lat) + ", " + String(lon));
+        // Serial.println("Coords: " + String(lat) + ", " + String(lon));
 
         double dist_from_drop_point = distance(lat, lon, des_drop_data.lat, des_drop_data.lon);
         Serial.println("Dist: " + String(dist_from_drop_point));
@@ -134,8 +126,8 @@ void loop() {
             notDropped = false;
             Serial.println("Reached drop point");
         }
-        delay(500); // TODO: remove this later!!!!!
     }
+    digitalWrite(LED_RED, LOW);
 
     // Send message to parachutes
     // broadcastMessage(des_drop_data);
@@ -148,6 +140,7 @@ void loop() {
         servo_front_L.write(160);
         servo_back_L.write(160);
     }
-    delay(1000);
+
+    PiSerial.println(String(des_drop_data.bottleID)); // Tell software bottle has dropped
 
 }
