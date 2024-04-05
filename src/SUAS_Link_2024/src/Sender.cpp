@@ -1,6 +1,7 @@
 /*
   Sender.ino - Use ESP-NOW to send data from one ESP32 to another
   Created by Tayyib Chohan, 2024-03-02
+  Modified by Amy Li
   
   adapted from https://dronebotworkshop.com/
 */
@@ -14,12 +15,9 @@ int incomingByte = 0;
 char *serialVals[3]; 
 char *ptr = NULL;
 
-esp_now_peer_info_t peerInfo;
+
 struct_response response;
 bool success = false;
-
-// MAC Address of responder - edit as required
-uint8_t broadcastAddressAll[] = {0xFF, 0xFF, 0xFF, 0xFF, 0xFF, 0xFF};
  
 // Callback function called when data is sent
 void OnDataSent(const uint8_t *mac_addr, esp_now_send_status_t status) {
@@ -52,7 +50,7 @@ bool broadcastMessage(struct_message myData){
   success = false;
   //timer for timeout
   unsigned long start = millis();
-  esp_err_t result2 = esp_now_send(broadcastAddressAll, (uint8_t *) &myData, sizeof(myData));
+  esp_err_t result2 = esp_now_send(0, (uint8_t *) &myData, sizeof(myData)); // peer_addr 0 means send to all
   if (result2 == ESP_OK) {  
     //Wait for confirmation from reciever
     while(!success){

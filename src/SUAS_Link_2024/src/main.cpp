@@ -21,6 +21,7 @@ Servo servo_back_L;
 
 Linker linker;
 Autopilot_Interface pixhawk(&linker);
+esp_now_peer_info_t peerInfo;
 
 void setup() {
     Serial.begin(57600);
@@ -42,25 +43,17 @@ void setup() {
     servo_back_L.write(75);
     delay(1000);
 
-    // // Set ESP32 as a Wi-Fi Station
-    // WiFi.mode(WIFI_STA);
-    // // Initilize ESP-NOW
-    // if (esp_now_init() != ESP_OK) {
-    //     Serial.println("Error initializing ESP-NOW");
-    //     return;
-    // }
-    // // Register the send and receive callback
-    // esp_now_register_send_cb(OnDataSent);
-    // esp_now_register_recv_cb(OnDataRecv);
-    // // Register peer
-    // peerInfo.channel = 0;  
-    // peerInfo.encrypt = false;
-    // memcpy(peerInfo.peer_addr, broadcastAddressAll, 6);
-    // if (esp_now_add_peer(&peerInfo) != ESP_OK){
-    //     Serial.println("Failed to add peer");
-    //     return;
-    // }
-    // // while(!initialized) { initialized = handShakeSerial(); }
+    // Set up ESP-NOW communication
+    WiFi.mode(WIFI_STA);
+    if (esp_now_init() != ESP_OK) { Serial.println("Error initializing ESP-NOW"); }
+    esp_now_register_send_cb(OnDataSent);
+    esp_now_register_recv_cb(OnDataRecv);
+    peerInfo.channel = 0;  
+    peerInfo.encrypt = false;
+    // Register parachute boards
+    memcpy(peerInfo.peer_addr, ADDRESS_1, 6);
+    if (esp_now_add_peer(&peerInfo) != ESP_OK) { Serial.println("Failed to add peer"); }
+    
     digitalWrite(LED_RED, LOW); // Red LED off indicates comminucation established
 
     // Request message types from Cube
@@ -130,7 +123,9 @@ void loop() {
     digitalWrite(LED_RED, LOW);
 
     // Send message to parachutes
-    // broadcastMessage(des_drop_data);
+    broadcastMessage(des_drop_data);
+
+    delay(3000); // REMOVE LATER!!!!!!!!!!!!!!!!!!!!!!
 
     if (des_drop_data.bottleID == 1 || des_drop_data.bottleID == 3 || des_drop_data.bottleID == 5) {
         servo_front_R.write(160);

@@ -12,6 +12,7 @@
 #include "SDCard.h"
 #include "PID.h"
 #include "Steering.h"
+#include "Reciever.h"
 
 #define BufferLen 150
 
@@ -75,6 +76,8 @@ int i = 0;
 unsigned long timeStart = 0;
 uint8_t GPS_Loop_Counter = 0;
 
+// esp_now_peer_info_t peerInfo;
+
 void PrintSensorData();
 void DoKalman();
 void DoCount();
@@ -112,6 +115,13 @@ void setup()
   //Initializes PID object
   PID.PIDInit(ACQUIRE_RATE);
   motorSetup(); //Initialize two servo motors
+  
+  // Set up ESP-NOW communication
+  WiFi.mode(WIFI_STA);
+  if (esp_now_init() != ESP_OK) { Serial.println("Error initializing ESP-NOW"); }
+  esp_now_register_recv_cb(OnDataRecv);
+  // peerInfo.channel = 0;  
+  // peerInfo.encrypt = false;
 
   delay(1000);
   timeStart = millis();
