@@ -12,16 +12,16 @@
 
 //if you add more data to the gpsData_t struct, make sure to update the functions in gpsLowLevel.cpp
 typedef struct{
-    float Latitude;
-    float Longitude;
+    double Latitude;
+    double Longitude;
     float Altitude;
     bool lock;
     int satellites;
-    float refLatitude;
-    float refLongitude;
+    double refLatitude;
+    double refLongitude;
     float velocity;
-    float Xpos;
-    float Ypos;
+    double Xpos;
+    double Ypos;
 } gpsData_t;
 
 class gpsLowLevel {
@@ -36,7 +36,7 @@ public:
     GPS_Status update();
     GPS_Status fetchAllData(gpsData_t * gpsData_Out);
     GPS_Status resetReference();
-    float distanceBetween(float lat1, float long1, float lat2, float long2);
+    double distBetween(double lat1, double long1, double lat2, double long2);
 
 private:
     HardwareSerial *gpsSerial;

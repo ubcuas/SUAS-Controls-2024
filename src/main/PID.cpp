@@ -21,7 +21,7 @@
  *             control frequency = acquire rate of PID
  */
 void Pid::PIDInit(double controlFrequency){
-    DT=1/controlFrequency;
+    DT=1.0/controlFrequency;
 }
 
 /*

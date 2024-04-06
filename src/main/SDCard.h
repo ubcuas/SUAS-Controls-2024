@@ -12,6 +12,11 @@
 #define SD_SCLK 18
 #define SD_DETECT 17
 
+#define LOG_FILE_BASE "data"
+#define LOG_FILE_EXT ".txt"
+#define LOG_DIR "/log"
+
+
 namespace SDCard
 {
 
@@ -22,6 +27,7 @@ namespace SDCard
     } SDCardStatus;
 
     SDCardStatus SDcardInit();
+    SDCardStatus CheckAndRenameFiles();
     SDCardStatus SDcardWrite(const char data[]); 
 } // namespace SDCard
 

@@ -13,7 +13,7 @@
 #include "PID.h"
 #include "Steering.h"
 
-#define BufferLen 150
+#define BufferLen 500
 
 #define ACQUIRE_RATE 57.0 //Hz
 #define DELTA_T (1.0f / ACQUIRE_RATE) //seconds
@@ -136,7 +136,7 @@ void loop()
   }
 
   DoKalman();
-  PrintSensorData();
+  // PrintSensorData();
   PIDTesting();
 
   //keep reading battery data
@@ -274,8 +274,8 @@ void DoCount(){
 
 void PIDTesting(){
   char outputBuffer[BufferLen]; //This is for printing values out to terminal
-  float target_lon=0; //Example target longitude
-  float target_lat=0; //Example target latitude
+  double target_lon=-122.12071003376428; //Example target longitude
+  double target_lat=37.4181048968111; //Example target latitude
 
   //To access kalman filter values for current x,y,&z direction
   MatrixXd X_Zaxis = myKalmanFilter_inst_Z.getState();
@@ -285,22 +285,56 @@ void PIDTesting(){
   // Take current GPS coordinates and add x,y,z, from kalman filter
   // Lat_Fast = GPS.Fast+X_Moved*ConversionFactor
   //radius_calc= 180*radius of earth/pi
-  float radius_calc = 365438211.3124;
-  float lon_fast = sensorData_inst.gpsData.Longitude + X_Xaxis(0,0)*radius_calc;
-  float lat_fast = sensorData_inst.gpsData.Latitude + X_Yaxis(0,0)*radius_calc;
+  double radius_calc = 365285454.545;
+
+  double rEarth_m = 6371000.0;
+  double lat_dist_per_degree_m = 111000.0;
+
+  double delta_lat = X_Yaxis(0,0)/lat_dist_per_degree_m;
+  double delta_long = X_Xaxis(0,0)/(lat_dist_per_degree_m * cos(sensorData_inst.gpsData.refLatitude * M_PI/180.0));
+
+  double lon_now = sensorData_inst.gpsData.refLongitude + delta_long;
+  double lat_now = sensorData_inst.gpsData.refLatitude + delta_lat;
   //Height = current GPS_Position & use kinematics to get new height? To be done
   
   //Get process variable - pv is the error between (lot & lat_fast direction)-(target) / current heading-target heading
-  double pv = GPS.courseTo(lat_fast,lon_fast,target_lat,target_lon)-sensorData_inst.imuData.EulerAngles.v2;
+  double setpoint = GPS.courseTo(lat_now, lon_now, target_lat, target_lon); //Get the heading to the target
+  //convert heading from 0-360 to -180-180
+  if(setpoint > 180){
+    setpoint = setpoint - 360;
+  }
+
+  double pv = setpoint - sensorData_inst.imuData.EulerAngles.v2;
+  //Always get the shortest path
+  if(pv > 180.0){
+    pv = pv - 360.0;
+  }
+  else if(pv < -180.0){
+    pv = pv + 360.0;
+  }
 
   //compute PID angle using process variable
-  double motor_value = PID.PIDcalculate(pv);
+  // double motor_value = PID.PIDcalculate(pv);
 
   //Send to servos
-  steering(motor_value);
+  // steering(motor_value);
+  double distance = GPS.distanceBetween(lon_now, lat_now, target_lon, target_lat);
   
   //Print to terminal
-  //sprintf(outputBuffer, "Pv: %.5lf \t Error: %.5lf \t Output: %.5lf\t Integral: %.5lf \t \n", pv, PID.error, yaw, PID.integral); 
+  snprintf(outputBuffer, BufferLen, "Yaw: %.3lf\nSetpoint: %.3lf\nPV: %.3lf\nDistance: %.3lf\nlattitude: %.6lf\nlongitude: %.6lf\nlat_now: %.6lf\nlon_now: %.6lf\n,x: %.6lf\ny: %.6lf\nz: %.6lf\n", 
+  sensorData_inst.imuData.EulerAngles.v2, 
+  setpoint, 
+  pv, 
+  distance,
+  sensorData_inst.gpsData.Latitude,
+  sensorData_inst.gpsData.Longitude,
+  lat_now,
+  lon_now,
+  X_Xaxis(0,0),
+  X_Yaxis(0,0),
+  X_Zaxis(0,0)
+  );
+  // sprintf(outputBuffer, "Pv: %.5lf \t Error: %.5lf \t Output: %.5lf\t Integral: %.5lf \t \n", pv, PID.error, yaw, PID.integral); 
   SERIAL_PORT.print(outputBuffer);
 }
 

@@ -29,6 +29,69 @@ namespace SDCard
             return SDCARD_ERROR;
         }
         Serial.println("initialization done.");
+        // return SDCARD_OK;
+        return CheckAndRenameFiles();
+    }
+
+    /**
+     * @brief Check if the file exists and rename it
+     * @return SDCardStatus 
+     */
+    SDCardStatus CheckAndRenameFiles(){
+        File root = SD.open(LOG_DIR);
+        int maxNum = 0;
+        bool basefileExists = false;
+
+        while(true){
+            File entry = root.openNextFile();
+            if(!entry){
+                break;
+            }
+            if(entry.isDirectory()){
+                continue;
+            }
+            String fileName = entry.name();
+            Serial.println(fileName);
+            if(fileName == (String(LOG_FILE_BASE) + String(LOG_FILE_EXT))){
+                basefileExists = true;
+            }
+            else if (fileName.startsWith(String(LOG_FILE_BASE)) && fileName.endsWith("_old" + String(LOG_FILE_EXT))) {
+                int startOfNum = fileName.lastIndexOf('_', fileName.lastIndexOf("_old") - 1) + 1;
+                int endOfNum = fileName.lastIndexOf("_old");
+                if (startOfNum >= 0 && endOfNum > startOfNum) {
+                    String numStr = fileName.substring(startOfNum, endOfNum);
+                    int num = numStr.toInt();
+                    if (num > maxNum) {
+                        maxNum = num;
+                    }
+                    Serial.printf("MaxNum: %d\n", maxNum);
+                }
+            }
+            entry.close();
+        }
+        root.close();
+
+        if(basefileExists){
+            String oldFileName = String(LOG_DIR) + "/" + String(LOG_FILE_BASE) + String(LOG_FILE_EXT);
+            String newFileName = String(LOG_DIR) + "/" + String(LOG_FILE_BASE) + "_" + String(maxNum + 1) + "_old" + String(LOG_FILE_EXT);
+            bool renameResult = SD.rename(oldFileName.c_str(), newFileName.c_str());
+            Serial.println(renameResult ? "Rename successful" : "Rename failed");
+            if (!renameResult) {
+                // Handle rename failure
+                return SDCARD_ERROR;
+            }
+        }
+
+        // create a new base file
+        File file = SD.open((String(LOG_DIR) + "/" + String(LOG_FILE_BASE) + String(LOG_FILE_EXT)), FILE_WRITE);
+        if(!file){
+            Serial.println("Failed to create new file");
+            return SDCARD_ERROR;
+        }
+        file.close();
+
+        Serial.println("Check and rename done");
+        Serial.printf("Current Old Files: %d\n", maxNum);
         return SDCARD_OK;
     }
 
@@ -43,7 +106,9 @@ namespace SDCard
         if(digitalRead(SD_DETECT)){
           return SDCARD_NOTCONNECTED;
         }
-        File file = SD.open("/data.txt", FILE_APPEND);
+        File file = SD.open(
+                (String(LOG_DIR) + "/" + String(LOG_FILE_BASE) + String(LOG_FILE_EXT)), FILE_APPEND
+            );
         if (!file)
         {
             // Serial.println("Failed to open file for appending");

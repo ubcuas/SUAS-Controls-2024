@@ -282,8 +282,6 @@ SENSORS_Status_t sensors::initGPS(){
     }
     SERIAL_PORT.println(F("GPS lock successful"));
     //save the reference location
-    // sensorData.gpsData.refLatitude = sensorData.gpsData.Latitude;
-    // sensorData.gpsData.refLongitude = sensorData.gpsData.Longitude;
     resetGPSReference();
     //Print the GPS data
     PrintGPSData();
@@ -363,7 +361,7 @@ SENSORS_Status_t sensors::readIMUData(){
               // yaw (z-axis rotation)
               double t3 = +2.0 * (q0 * q3 + q1 * q2);
               double t4 = +1.0 - 2.0 * (q2sqr + q3 * q3);
-              double yaw = atan2(t3, t4) * 180.0 / PI;
+              double yaw = -1 * atan2(t3, t4) * 180.0 / PI;
 
               //update the Values
               sensorData.imuData.EulerAngles.set(roll, pitch, yaw);
