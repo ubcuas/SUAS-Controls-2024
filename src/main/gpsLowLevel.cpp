@@ -48,8 +48,8 @@ gpsLowLevel::GPS_Status gpsLowLevel::fetchAllData(gpsData_t * gpsData_Out){
         // gpsData.refLatitude = gps.location.lat();
         // gpsData.refLongitude = gps.location.lng();
         //get the X and Y position
-        gpsData.Xpos = distanceBetween(gpsData.refLatitude, gpsData.refLongitude, gpsData.refLatitude, gpsData.Longitude);
-        gpsData.Ypos = distanceBetween(gpsData.refLatitude, gpsData.refLongitude, gpsData.Latitude, gpsData.refLongitude);
+        gpsData.Xpos = this->distBetween(gpsData.refLatitude, gpsData.refLongitude, gpsData.refLatitude, gpsData.Longitude);
+        gpsData.Ypos = this->distBetween(gpsData.refLatitude, gpsData.refLongitude, gpsData.Latitude, gpsData.refLongitude);
         // Serial.printf("%f,%f\n", gpsData.Latitude, gpsData.Longitude);
     }
     else{
@@ -69,8 +69,8 @@ gpsLowLevel::GPS_Status gpsLowLevel::resetReference(){
   return GPS_OK;
 }
 
-float gpsLowLevel::distanceBetween(float lat1, float long1, float lat2, float long2){
-    float dist = TinyGPSPlus::distanceBetween(lat1, long1, lat2, long2);
+double gpsLowLevel::distBetween(double lat1, double long1, double lat2, double long2){
+    double dist = TinyGPSPlus::distanceBetween(lat1, long1, lat2, long2);
     if(long2 < long1)
         dist = -1.0*dist;
     else if(lat2 < lat1)
