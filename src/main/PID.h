@@ -27,7 +27,7 @@ public:
     //Pid();
 
     // Function to initialize the PID controller with specific parameters
-    void PIDInit(double controlFrequency);
+    void PIDInit(double controlFrequency, double KP, double KI, double KD);
 
     // Calculate the PID output based on the process variable
     double PIDcalculate(double processVariable);

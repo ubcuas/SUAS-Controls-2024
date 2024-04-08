@@ -25,14 +25,14 @@
     nU: number of control inputs
     dt: time step
 */
-KalmanFilter::KalmanFilter(uint8_t nX, uint8_t nZ, uint8_t nU, double dt, double std_U, double std_Z) {
+KalmanFilter::KalmanFilter(uint8_t nX, uint8_t nZ, uint8_t nU) {
         // Constructor
         this->nX = nX;
         this->nZ = nZ;
         this->nU = nU;
-        this->dt = dt;
-        this->std_U = std_U;
-        this->std_Z = std_Z;
+        // this->dt = dt;
+        // this->std_U = std_U;
+        // this->std_Z = std_Z;
 
         // Initialize the vectors and matrices
         X = MatrixXd::Zero(nX, 1);
@@ -54,7 +54,11 @@ KalmanFilter::KalmanFilter(uint8_t nX, uint8_t nZ, uint8_t nU, double dt, double
     This function *CAN* overriden by the user.
     Assuming a 2 state system with 1 measurement and 1 control input
 */
-void KalmanFilter::initialize(){
+void KalmanFilter::initialize(double dt, double std_U, double std_Z){
+    this->dt = dt;
+    this->std_U = std_U;
+    this->std_Z = std_Z;
+
     // Initialize the state transition matrix
     F << 1, dt,
          0, 1;
@@ -110,7 +114,7 @@ void KalmanFilter::predict(MatrixXd U_) {
     //in case X is not a number, reinitialize the filter
     if(isnan(X(0,0)) || isnan(X(1,0))){
         //reset the filter
-        initialize();
+        initialize(this->dt, this->std_U, this->std_Z);
     }
 }
 
@@ -134,7 +138,7 @@ void KalmanFilter::update(MatrixXd Z_) {
     //in case X is not a number, reinitialize the filter
     if(isnan(X(0,0)) || isnan(X(1,0))){
         //reset the filter
-        initialize();
+        initialize(this->dt, this->std_U, this->std_Z);
     }
 }
 

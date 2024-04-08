@@ -3,8 +3,12 @@
 
 SPIClass spi_1 = SPIClass(HSPI);      //define serial_port for serial
 
+SDCard::SDCardStatus SDStatus;
+
 namespace SDCard
 {
+     
+    
     /**
      * @brief Initialize the SD card
      * We are using the SD card in SPI mode, so we need to connect the SD card to the SPI pins of the ESP32
@@ -18,6 +22,7 @@ namespace SDCard
         
         if(digitalRead(SD_DETECT)){
           Serial.println("SD Card Not Plugged in!!\n");
+          SDStatus = SDCARD_NOTCONNECTED;
           return SDCARD_NOTCONNECTED;
         }
 
@@ -26,10 +31,12 @@ namespace SDCard
         if (!SD.begin(SD_CS, spi_1, 16000000))
         {
             Serial.println("initialization failed!");
+            SDStatus = SDCARD_ERROR;
             return SDCARD_ERROR;
         }
         Serial.println("initialization done.");
         // return SDCARD_OK;
+        SDStatus = SDCARD_OK;
         return CheckAndRenameFiles();
     }
 
@@ -78,6 +85,7 @@ namespace SDCard
             Serial.println(renameResult ? "Rename successful" : "Rename failed");
             if (!renameResult) {
                 // Handle rename failure
+                SDStatus = SDCARD_ERROR;
                 return SDCARD_ERROR;
             }
         }
@@ -86,6 +94,7 @@ namespace SDCard
         File file = SD.open((String(LOG_DIR) + "/" + String(LOG_FILE_BASE) + String(LOG_FILE_EXT)), FILE_WRITE);
         if(!file){
             Serial.println("Failed to create new file");
+            SDStatus = SDCARD_ERROR;
             return SDCARD_ERROR;
         }
         file.close();

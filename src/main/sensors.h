@@ -24,7 +24,7 @@
 
 // On the SparkFun 9DoF IMU breakout the default is 1, and when the ADR jumper is closed the value becomes 0
 #define AD0_VAL 1
-#define GRAVITY 9.809f
+// #define GRAVITY 9.809f
 
 // BMP 280 CONFIG
 #define BMP_ADDRESS 0x77

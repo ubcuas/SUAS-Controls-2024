@@ -6,6 +6,7 @@
 
 #include <Arduino.h>
 #include <TinyGPSPlus.h>
+#include "ConfigParse.h"
 #include "sensors.h"
 #include "kalmanfilter.h"
 #include "WebStreamServer.h"
@@ -16,60 +17,23 @@
 
 #define BufferLen 500
 
-#define ACQUIRE_RATE 57.0 //Hz
-#define DELTA_T (1.0f / ACQUIRE_RATE) //seconds
+// Kalman Filter Parameters
 #define NUM_STATES 2
 #define NUM_MEASUREMENTS 1
 #define NUM_CONTROL_INPUTS 1
 
-//Sensor Noise Parameters
-#define ACC_X_STD 0.3 * GRAVITY
-#define ACC_Y_STD 0.3 * GRAVITY
-#define ACC_Z_STD 0.05 * GRAVITY
-#define BARO_ALT_STD 1.466 //meters
-#define GPS_POS_STD 2.5 //meters
+//config data structure and object
+ConfigParser configParser_inst;
+ConfigData_t configData_inst;
 
 TinyGPSPlus GPS;
 Pid PID;
 Sensors::sensors mySensor_inst;
 Sensors::sensorData_t sensorData_inst;
-KalmanFilter myKalmanFilter_inst_Z(NUM_STATES, NUM_MEASUREMENTS, NUM_CONTROL_INPUTS, DELTA_T, ACC_Z_STD, BARO_ALT_STD);
-KalmanFilter myKalmanFilter_inst_Y(NUM_STATES, NUM_MEASUREMENTS, NUM_CONTROL_INPUTS, DELTA_T, ACC_Y_STD, GPS_POS_STD);
-KalmanFilter myKalmanFilter_inst_X(NUM_STATES, NUM_MEASUREMENTS, NUM_CONTROL_INPUTS, DELTA_T, ACC_X_STD, GPS_POS_STD);
+KalmanFilter myKalmanFilter_inst_Z(NUM_STATES, NUM_MEASUREMENTS, NUM_CONTROL_INPUTS);
+KalmanFilter myKalmanFilter_inst_Y(NUM_STATES, NUM_MEASUREMENTS, NUM_CONTROL_INPUTS);
+KalmanFilter myKalmanFilter_inst_X(NUM_STATES, NUM_MEASUREMENTS, NUM_CONTROL_INPUTS);
 WebStreamServer webStreamServer_inst;
-
-//redeclare the kalman filter initialize function
-// void KalmanFilter::initialize(){
-//     // Initialize the state transition matrix
-//     F << 1, dt,
-//          0, 1;
-
-//     // Initialize the control matrix
-//     G << 0.5*dt*dt,
-//          dt;
-
-//     // Initialize the process noise covariance matrix
-//     Q << 0.5*dt*dt, 0,
-//          0, 1;
-
-//     // Initialize the measurement matrix
-//     H << 1, 0;
-
-//     // Initialize the measurement noise covariance matrix
-//     R << 1;
-
-//     // Initialize the process noise matrix
-//     W << 0.5*dt*dt,
-//          dt;
-
-//     // Initialize the state covariance matrix
-//     P << 1, 0,
-//          0, 1;
-
-//     // Initialize the state vector
-//     X << 0,
-//          0;
-// }
 
 //for counting loop rate
 int i = 0;
@@ -84,8 +48,30 @@ void DoCount();
 
 void setup()
 {
+  bool SDStatus = true;
   SERIAL_PORT.begin(921600); // Start the serial console
-  webStreamServer_inst.init();
+  
+  if(SDCard::SDcardInit() != SDCard::SDCARD_OK){
+    SERIAL_PORT.println("SD card failed");
+    SDStatus = false;
+  }
+
+  // Read the configuration file
+  if(SDStatus == 1){
+    if(configParser_inst.parseConfigFile(SD, &configData_inst) != ConfigParseStatus::CONFIG_OK){
+      SERIAL_PORT.println("Config read failed");
+      SERIAL_PORT.println("Using default values");
+      configParser_inst.getConfigNoSD(&configData_inst);
+    }
+  }
+  else{
+    configParser_inst.getConfigNoSD(&configData_inst);
+  }
+  // Print the configuration data
+  configParser_inst.printConfigData(&configData_inst);
+
+  // Initialize the WebStreamServer
+  webStreamServer_inst.init((const char *)configData_inst.SSID, (const char *)configData_inst.Password);
   webStreamServer_inst.setCustomFunction([&]() { mySensor_inst.resetGPSReference(); });
 
   // Initialize the Sensors
@@ -105,23 +91,18 @@ void setup()
   }
 
   // Initialize the Kalman Filter
-  myKalmanFilter_inst_Z.initialize();
-  myKalmanFilter_inst_Y.initialize();
-  myKalmanFilter_inst_X.initialize();
+  myKalmanFilter_inst_Z.initialize(configData_inst.SampleTime, configData_inst.ACC_Z_STD, configData_inst.BARO_ALT_STD);
+  myKalmanFilter_inst_Y.initialize(configData_inst.SampleTime, configData_inst.ACC_Y_STD, configData_inst.GPS_POS_STD);
+  myKalmanFilter_inst_X.initialize(configData_inst.SampleTime, configData_inst.ACC_X_STD, configData_inst.GPS_POS_STD);
   
-  if(SDCard::SDcardInit() != SDCard::SDCARD_OK){
-    SERIAL_PORT.println("SD card failed");
-  }
   //Initializes PID object
-  PID.PIDInit(ACQUIRE_RATE);
+  PID.PIDInit(configData_inst.AcquireRate, configData_inst.PID.KP, configData_inst.PID.KI, configData_inst.PID.KD);
   motorSetup(); //Initialize two servo motors
   
   // Set up ESP-NOW communication
-  WiFi.mode(WIFI_STA);
-  if (esp_now_init() != ESP_OK) { Serial.println("Error initializing ESP-NOW"); }
-  esp_now_register_recv_cb(OnDataRecv);
-  // peerInfo.channel = 0;  
-  // peerInfo.encrypt = false;
+  if(InitESPNow(configData_inst.BottleID) == false){
+    SERIAL_PORT.println("ESP-NOW init failed");
+  }
 
   delay(1000);
   timeStart = millis();
@@ -130,7 +111,7 @@ void setup()
 void loop()
 {
   //Read Data
-  if(GPS_Loop_Counter >= ACQUIRE_RATE/GPS_RATE){
+  if(GPS_Loop_Counter >= configData_inst.AcquireRate/GPS_RATE){
     if(mySensor_inst.readData_GPS(&sensorData_inst) != Sensors::SENSORS_OK){
       //SERIAL_PORT.println("Sensor read failed");
       //while(1);
@@ -146,7 +127,7 @@ void loop()
   }
 
   DoKalman();
-  // PrintSensorData();
+  PrintSensorData();
   PIDTesting();
 
   //keep reading battery data
@@ -165,15 +146,15 @@ void DoKalman(){
 
   //---Z_AXIS_KALMAN---
   double ACC_Z = sensorData_inst.imuData.LinearAccel.v2 - sensorData_inst.imuData.LinearAccelOffset.v2;  //obtained from the mean of the data
-  ACC_Z = ACC_Z * GRAVITY;  //the current value is in g's, so multiply by gravity to get m/s^2
+  ACC_Z = ACC_Z * configData_inst.GRAVITY;  //the current value is in g's, so multiply by gravity to get m/s^2
   double Alt_Baro = sensorData_inst.barometerData.Altitude - sensorData_inst.barometerData.AltitudeOffset;
   //--Y_AXIS_KALMAN--
   double ACC_Y = sensorData_inst.imuData.LinearAccel.v1 - sensorData_inst.imuData.LinearAccelOffset.v1;  //obtained from the mean of the data
-  ACC_Y = ACC_Y * GRAVITY;
+  ACC_Y = ACC_Y * configData_inst.GRAVITY;
   double Y_POS_GPS = sensorData_inst.gpsData.Ypos;
   //--X_AXIS_KALMAN--
   double ACC_X = sensorData_inst.imuData.LinearAccel.v0 - sensorData_inst.imuData.LinearAccelOffset.v0;  //obtained from the mean of the data
-  ACC_X = ACC_X * GRAVITY;
+  ACC_X = ACC_X * configData_inst.GRAVITY;
   double X_POS_GPS = sensorData_inst.gpsData.Xpos;
 
   //make them into matrices
@@ -206,43 +187,142 @@ void DoKalman(){
 }
 
 void PrintSensorData(){
-
-  char buffer[500];
-  char buffer1[500];
+  char *buffer;
+  char *buffer_wifi; 
   
+  //allocate memory for the buffer
+  buffer = (char *)malloc(configData_inst.BufferSize * sizeof(char));
+  buffer_wifi = (char *)malloc(configData_inst.BufferSize * sizeof(char));
+
+  //if null pointers then return
+  if(buffer == NULL || buffer_wifi == NULL){
+    return;
+  }
+
   static uint32_t time = millis();
   // Print the data
   //get the state
   MatrixXd X_Zaxis = myKalmanFilter_inst_Z.getState();
   MatrixXd X_Yaxis = myKalmanFilter_inst_Y.getState();
   MatrixXd X_Xaxis = myKalmanFilter_inst_X.getState();
-  snprintf(buffer, sizeof(buffer), "hyu, %.2lf,%.2lf,%.2lf,%.3lf,%.6lf,%.6lf,%.6lf,%.6lf,%.6lf,%.2lf,%d,%d,%.3lf,%.3lf,%.3lf,%.3lf,%.2lf,%.2lf,%.2lf,%.2lf,%.2lf,%.2lf,%.2lf\n", 
-    X_Zaxis(0,0),    //Kalman-pos_Zaxis
-    X_Zaxis(1,0),    //Kalman-vel_Zaxis
-    sensorData_inst.barometerData.Altitude - sensorData_inst.barometerData.AltitudeOffset,
-    sensorData_inst.barometerData.Pressure/100,
-    sensorData_inst.imuData.LinearAccel.v0 /*- sensorData_inst.imuData.LinearAccelOffset.v0*/, 
-    sensorData_inst.imuData.LinearAccel.v1 /*- sensorData_inst.imuData.LinearAccelOffset.v1*/, 
-    sensorData_inst.imuData.LinearAccel.v2 /*- sensorData_inst.imuData.LinearAccelOffset.v2*/, 
-    sensorData_inst.gpsData.Latitude, 
-    sensorData_inst.gpsData.Longitude, 
-    sensorData_inst.gpsData.Altitude, 
-    sensorData_inst.gpsData.lock? 1 : 0, 
-    sensorData_inst.gpsData.satellites, 
-    sensorData_inst.imuData.Orientation.q0, 
-    sensorData_inst.imuData.Orientation.q1, 
-    sensorData_inst.imuData.Orientation.q2, 
-    sensorData_inst.imuData.Orientation.q3,
-    X_Xaxis(0,0),    //Kalman-pos_Xaxis
-    X_Xaxis(1,0),    //Kalman-vel_Xaxis
-    X_Yaxis(0,0),    //Kalman-pos_Yaxis
-    X_Yaxis(1,0),     //Kalman-vel_Yaxis
-    sensorData_inst.imuData.EulerAngles.v0, //roll
-    sensorData_inst.imuData.EulerAngles.v1, //pitch
-    sensorData_inst.imuData.EulerAngles.v2  //yaw
-  );
 
-  snprintf(buffer1, sizeof(buffer1), "hyu, %.2lf,%.2lf,%.2lf,%.6lf,%.6lf,%.2lf,%d,%d\n", //hyu, %.2lf,%.2lf,%.2lf,%.2lf,%.2lf,%.2lf,%.6lf,%.6lf,%.2lf,%d,%d\n
+  //prepare the Serial and SD card buffer based on which data is to be printed
+  static bool headerWritten = false;
+  uint16_t length = 0;
+
+  if (!headerWritten) {
+    // Construct the CSV header based on config settings
+    length += snprintf(buffer + length, configData_inst.BufferSize - length, "hyu");
+
+    if(configData_inst.OutputData.KalmanFilter.Position) {
+        length += snprintf(buffer + length, configData_inst.BufferSize - length, ",PosX,PosY,PosZ");
+    }
+    if(configData_inst.OutputData.KalmanFilter.Velocity) {
+        length += snprintf(buffer + length, configData_inst.BufferSize - length, ",VelX,VelY,VelZ");
+    }
+    if(configData_inst.OutputData.BAROMETER.Altitude) {
+        length += snprintf(buffer + length, configData_inst.BufferSize - length, ",BaroAltitude");
+    }
+    if(configData_inst.OutputData.BAROMETER.Pressure) {
+        length += snprintf(buffer + length, configData_inst.BufferSize - length, ",BaroPressure");
+    }
+    if(configData_inst.OutputData.IMU.LinearAccel) {
+        length += snprintf(buffer + length, configData_inst.BufferSize - length, ",AccelX,AccelY,AccelZ");
+    }
+    if(configData_inst.OutputData.IMU.Orientation_Quaternion) {
+        length += snprintf(buffer + length, configData_inst.BufferSize - length, ",OrientQ0,OrientQ1,OrientQ2,OrientQ3");
+    }
+    if(configData_inst.OutputData.IMU.EulerAngles) {
+        length += snprintf(buffer + length, configData_inst.BufferSize - length, ",Roll,Pitch,Yaw");
+    }
+    if(configData_inst.OutputData.GPS.Coordinates) {
+        length += snprintf(buffer + length, configData_inst.BufferSize - length, ",Latitude,Longitude");
+    }
+    if(configData_inst.OutputData.GPS.Altitude) {
+        length += snprintf(buffer + length, configData_inst.BufferSize - length, ",GPSAltitude");
+    }
+    if(configData_inst.OutputData.GPS.Satellites) {
+        length += snprintf(buffer + length, configData_inst.BufferSize - length, ",Satellites");
+    }
+    if(configData_inst.OutputData.GPS.Lock) {
+        length += snprintf(buffer + length, configData_inst.BufferSize - length, ",GPSLock");
+    }
+
+    // Append a new line after the header
+    length += snprintf(buffer + length, configData_inst.BufferSize - length, "\n");
+
+    // Write the header to the SD card or other output destinations here
+    SDCard::SDCardStatus SDWriteStatus = SDCard::SDcardWrite(buffer);
+    if(SDWriteStatus == SDCard::SDCARD_ERROR){ //only alert if the writing failed for some reason.
+      Serial.println("SD card write failed");
+    } 
+
+    headerWritten = true; // Set the flag so the header is not written again
+
+    //reset the length to 0
+    length = 0;
+  }
+
+
+  //Add header to the buffer
+  length += snprintf(buffer + length, configData_inst.BufferSize, "hyu");
+
+  //Kalman Filter Data
+  //   -- Position
+  if(configData_inst.OutputData.KalmanFilter.Position){
+    length += snprintf(buffer + length, configData_inst.BufferSize, ",%.2lf,%.2lf,%.2lf", X_Xaxis(0,0), X_Yaxis(0,0), X_Zaxis(0,0));
+  }
+  //   -- Velocity
+  if(configData_inst.OutputData.KalmanFilter.Velocity){
+    length += snprintf(buffer + length, configData_inst.BufferSize, ",%.2lf,%.2lf,%.2lf", X_Xaxis(1,0), X_Yaxis(1,0), X_Zaxis(1,0));
+  }
+
+  //Barometer Data
+  if(configData_inst.OutputData.BAROMETER.Altitude){
+    length += snprintf(buffer + length, configData_inst.BufferSize, ",%.2lf", sensorData_inst.barometerData.Altitude - sensorData_inst.barometerData.AltitudeOffset);
+  }
+  if(configData_inst.OutputData.BAROMETER.Pressure){
+    length += snprintf(buffer + length, configData_inst.BufferSize, ",%.3lf", sensorData_inst.barometerData.Pressure/100.0);
+  }
+
+  //IMU Data
+  if(configData_inst.OutputData.IMU.LinearAccel){
+    length += snprintf(buffer + length, configData_inst.BufferSize, ",%.6lf,%.6lf,%.6lf", sensorData_inst.imuData.LinearAccel.v0 - sensorData_inst.imuData.LinearAccelOffset.v0, sensorData_inst.imuData.LinearAccel.v1 - sensorData_inst.imuData.LinearAccelOffset.v1, sensorData_inst.imuData.LinearAccel.v2 - sensorData_inst.imuData.LinearAccelOffset.v2);
+  }
+  if(configData_inst.OutputData.IMU.Orientation_Quaternion){
+    length += snprintf(buffer + length, configData_inst.BufferSize, ",%.6lf,%.6lf,%.6lf,%.6lf", sensorData_inst.imuData.Orientation.q0, sensorData_inst.imuData.Orientation.q1, sensorData_inst.imuData.Orientation.q2, sensorData_inst.imuData.Orientation.q3);
+  }
+  if(configData_inst.OutputData.IMU.EulerAngles){
+    length += snprintf(buffer + length, configData_inst.BufferSize, ",%.3lf,%.3lf,%.3lf", sensorData_inst.imuData.EulerAngles.v0, sensorData_inst.imuData.EulerAngles.v1, sensorData_inst.imuData.EulerAngles.v2);
+  }
+
+  //GPS Data
+  if(configData_inst.OutputData.GPS.Coordinates){
+    length += snprintf(buffer + length, configData_inst.BufferSize, ",%.6lf,%.6lf", sensorData_inst.gpsData.Latitude, sensorData_inst.gpsData.Longitude);
+  }
+  if(configData_inst.OutputData.GPS.Altitude){
+    length += snprintf(buffer + length, configData_inst.BufferSize, ",%.2lf", sensorData_inst.gpsData.Altitude);
+  }
+  if(configData_inst.OutputData.GPS.Satellites){
+    length += snprintf(buffer + length, configData_inst.BufferSize, ",%d", sensorData_inst.gpsData.satellites);
+  }
+  if(configData_inst.OutputData.GPS.Lock){
+    length += snprintf(buffer + length, configData_inst.BufferSize, ",%d", sensorData_inst.gpsData.lock? 1 : 0);
+  }
+
+  //Add a new line character
+  length += snprintf(buffer + length, configData_inst.BufferSize, "\n");
+
+  // Write the Data
+  SDCard::SDCardStatus SDWriteStatus = SDCard::SDcardWrite(buffer);
+  if(SDWriteStatus == SDCard::SDCARD_ERROR){ //only alert if the writing failed for some reason.
+    Serial.println("SD card write failed");
+  } 
+  if(configData_inst.Print_Enable){
+    SERIAL_PORT.print(buffer);
+  }
+  
+  snprintf(buffer_wifi, configData_inst.BufferSize, "hyu, %.2lf,%.2lf,%.2lf,%.6lf,%.6lf,%.2lf,%d,%d\n", //hyu, %.2lf,%.2lf,%.2lf,%.2lf,%.2lf,%.2lf,%.6lf,%.6lf,%.2lf,%d,%d\n
     X_Xaxis(0,0),    //Kalman-pos_Xaxis
     X_Yaxis(0,0),    //Kalman-pos_Yaxis
     X_Zaxis(0,0),    //Kalman-pos_Zaxis
@@ -258,16 +338,13 @@ void PrintSensorData(){
   // Send the data to all connected WebSocket clients
   if(millis() - time > 120){
     time = millis();
-    if(webStreamServer_inst.send(buffer1) == WebStreamServer::SUCCESS){
+    if(webStreamServer_inst.send(buffer_wifi) == WebStreamServer::SUCCESS){
     //SERIAL_PORT.println(mycounter);
     //mycounter++;
+    }
   }
-  }
-  SDCard::SDCardStatus SDWriteStatus = SDCard::SDcardWrite(buffer);
-  if(SDWriteStatus == SDCard::SDCARD_ERROR){ //only alert if the writing failed for some reason.
-    Serial.println("SD card write failed");
-  } 
-  SERIAL_PORT.print(buffer);
+  free(buffer);
+  free(buffer_wifi);
 }
 
 void DoCount(){
@@ -348,38 +425,3 @@ void PIDTesting(){
   SERIAL_PORT.print(outputBuffer);
 }
 
-void OLD_PRINT(){
-  MatrixXd X = myKalmanFilter_inst_Z.getState();
-  SERIAL_PORT.print(X(0,0));    //Kalman-pos
-  SERIAL_PORT.print(",");
-  SERIAL_PORT.print(X(1,0));    //Kalman-vel
-  SERIAL_PORT.print(",");
-  SERIAL_PORT.print(sensorData_inst.barometerData.Altitude - sensorData_inst.barometerData.AltitudeOffset, 6);
-  SERIAL_PORT.print(",");
-  SERIAL_PORT.print(sensorData_inst.barometerData.Pressure/100, 6);
-  SERIAL_PORT.print(",");
-  SERIAL_PORT.print(sensorData_inst.imuData.LinearAccel.v0 /*- sensorData_inst.imuData.LinearAccelOffset.v0*/, 6);
-  SERIAL_PORT.print(",");
-  SERIAL_PORT.print(sensorData_inst.imuData.LinearAccel.v1 /*- sensorData_inst.imuData.LinearAccelOffset.v1*/, 6);
-  SERIAL_PORT.print(",");
-  SERIAL_PORT.print(sensorData_inst.imuData.LinearAccel.v2 /*- sensorData_inst.imuData.LinearAccelOffset.v2*/, 6);
-  SERIAL_PORT.print(",");
-  SERIAL_PORT.print(sensorData_inst.gpsData.Latitude, 10);
-  SERIAL_PORT.print(",");
-  SERIAL_PORT.print(sensorData_inst.gpsData.Longitude, 10);
-  SERIAL_PORT.print(",");
-  SERIAL_PORT.print(sensorData_inst.gpsData.Altitude, 6);
-  SERIAL_PORT.print(",");
-  SERIAL_PORT.print(sensorData_inst.gpsData.lock? "LOCKED" : "NOT LOCKED");
-  SERIAL_PORT.print(",");
-  SERIAL_PORT.print(sensorData_inst.gpsData.satellites);
-  // SERIAL_PORT.print(0x1001);
-  SERIAL_PORT.print(",");
-  SERIAL_PORT.print(sensorData_inst.imuData.Orientation.q0);
-  SERIAL_PORT.print(",");
-  SERIAL_PORT.print(sensorData_inst.imuData.Orientation.q1);
-  SERIAL_PORT.print(",");
-  SERIAL_PORT.print(sensorData_inst.imuData.Orientation.q2);
-  SERIAL_PORT.print(",");
-  SERIAL_PORT.println(sensorData_inst.imuData.Orientation.q3);
-}

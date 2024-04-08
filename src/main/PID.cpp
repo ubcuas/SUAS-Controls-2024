@@ -20,8 +20,11 @@
  * Parameters: setpoint = input setpoint
  *             control frequency = acquire rate of PID
  */
-void Pid::PIDInit(double controlFrequency){
+void Pid::PIDInit(double controlFrequency, double KP, double KI, double KD){
     DT=1.0/controlFrequency;
+    this->KP = KP;
+    this->KI = KI;
+    this->KD = KD;
 }
 
 /*
