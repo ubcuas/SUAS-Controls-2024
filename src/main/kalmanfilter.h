@@ -30,11 +30,11 @@ using namespace Eigen;
 
 class KalmanFilter {
 public:
-    KalmanFilter(uint8_t nX, uint8_t nZ, uint8_t nU, double dt, double std_U, double std_Z);
+    KalmanFilter(uint8_t nX, uint8_t nZ, uint8_t nU);
     ~KalmanFilter() {
         // Destructor
     }
-    void initialize() __attribute__((weak)); //weak function to be overriden by user
+    void initialize(double dt, double std_U, double std_Z) __attribute__((weak)); //weak function to be overriden by user
     void predict(MatrixXd U_);
     void update(MatrixXd Z_);
     MatrixXd getState();

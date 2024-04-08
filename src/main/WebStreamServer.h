@@ -178,7 +178,7 @@ public:
         NOT_CONNECTED  // Added for completeness
     } WebStreamServerState;
 
-    WebStreamServerState init();
+    WebStreamServerState init(const char* ssid, const char* password);
     WebStreamServerState send(char* data);  // Function declaration
     void setCustomFunction(CustomFunction func) {
         this->customFunction = func;
@@ -188,8 +188,8 @@ private:
     AsyncWebServer server;
     AsyncWebSocket ws;
     bool connected = false;
-    const char* ssid = "ESP_Parachute_01";
-    const char* password = "UBC_UAS_2023";
+    // const char* ssid = "ESP_Parachute_01";
+    // const char* password = "UBC_UAS_2023";
     CustomFunction customFunction;
 };
 

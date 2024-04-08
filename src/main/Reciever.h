@@ -22,5 +22,6 @@ typedef struct responsepacket {
 } responsepacket;
 
 void OnDataRecv(const uint8_t * mac, const uint8_t *incomingData, int len);
+bool InitESPNow(uint8_t Bottle_id);
 
 #endif

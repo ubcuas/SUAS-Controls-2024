@@ -8,7 +8,7 @@
 
 #include "WebStreamServer.h"
 
-WebStreamServer::WebStreamServerState WebStreamServer::init(){
+WebStreamServer::WebStreamServerState WebStreamServer::init(const char* ssid, const char* password){
     // Set up the ESP32 as an Access Point
     // WiFi.softAP(this->ssid, this->password);
     IPAddress IP;
@@ -29,7 +29,7 @@ WebStreamServer::WebStreamServerState WebStreamServer::init(){
         }
     }
     if(softAP){
-      WiFi.softAP(this->ssid, this->password);
+      WiFi.softAP(ssid, password);
       delay(500);
       IP = WiFi.softAPIP();
     }
@@ -40,9 +40,9 @@ WebStreamServer::WebStreamServerState WebStreamServer::init(){
     SERIAL_PORT.print("\nDevice Connected!\nAP IP address: ");
     SERIAL_PORT.println(IP);
     SERIAL_PORT.print("SSID: ");
-    SERIAL_PORT.println(this->ssid);
+    SERIAL_PORT.println(ssid);
     SERIAL_PORT.print("Pass: ");
-    SERIAL_PORT.println(this->password);
+    SERIAL_PORT.println(password);
     
     delay(1000);
 

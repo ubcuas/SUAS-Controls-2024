@@ -10,6 +10,19 @@
 datapacket myData;
 responsepacket response;
 
+uint8_t Bottle_ID;
+
+bool InitESPNow(uint8_t Bottle_id) {
+  Bottle_ID = Bottle_id;
+  // WiFi.mode(WIFI_STA);
+  if (esp_now_init() != ESP_OK) {
+    Serial.println("Error initializing ESP-NOW");
+    return false;
+  }
+  esp_now_register_recv_cb(OnDataRecv);
+  return true;
+}
+
 // Callback function that will be executed when data is received
 void OnDataRecv(const uint8_t * mac, const uint8_t *incomingData, int len) {
   memcpy(&myData, (datapacket*)incomingData, sizeof(myData));
@@ -26,8 +39,8 @@ void OnDataRecv(const uint8_t * mac, const uint8_t *incomingData, int len) {
   Serial.println();
 
   // Send a response
-  if (myData.bottleID == BOTTLE_ID){
-    response.bottleID = BOTTLE_ID;
+  if (myData.bottleID == Bottle_ID){
+    response.bottleID = Bottle_ID;
     esp_err_t result = esp_now_send(mac, (uint8_t *) &response, sizeof(response));
     if (result == ESP_OK) {
       Serial.println("Response sent");

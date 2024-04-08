@@ -13,7 +13,7 @@
 #define SD_DETECT 17
 
 #define LOG_FILE_BASE "data"
-#define LOG_FILE_EXT ".txt"
+#define LOG_FILE_EXT ".csv"
 #define LOG_DIR "/log"
 
 
@@ -28,7 +28,7 @@ namespace SDCard
 
     SDCardStatus SDcardInit();
     SDCardStatus CheckAndRenameFiles();
-    SDCardStatus SDcardWrite(const char data[]); 
+    SDCardStatus SDcardWrite(const char data[]);
 } // namespace SDCard
 
 
