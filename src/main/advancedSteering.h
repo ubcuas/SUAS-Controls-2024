@@ -19,10 +19,11 @@
 
 #define WHEELRADIUS_M 1
 #define INITIAL_LENGTH_M 0.00
+#define ERROR_DEADZONE 0.001
 
-#define SERVO_SPEED_RAD_SEC 6.98412
+#define SERVO_SPEED_RAD_SEC 14.38378555
 #define SERVO_SPEED_M_SEC SERVO_SPEED_RAD_SEC * WHEELRADIUS_M
-#define SERVO_SPEED_VALUE_ANGLE 20
+#define SERVO_SPEED_VALUE_ANGLE 80
 
 
 typedef struct {
@@ -31,10 +32,10 @@ typedef struct {
 } SteeringData;
 
 //a queue to send the data to the steering function
-extern TaskHandle_t _steeringTask = NULL;
+extern TaskHandle_t _steeringTask;
 extern QueueHandle_t steeringQueue;
 
-void motorSetup();
+void mmotorSetup();
 void steering(void *pvParameters);
 
 #endif

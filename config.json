@@ -1,0 +1,40 @@
+{
+    "BottleID": 1,
+    "SSID": "UBC_UAS_Parachute_1",
+    "Password": "UBCUAS2023",
+    "AcquireRate": 57,
+    "GRAVITY": 9.809000015,
+    "ACC_X_STD": 0.3,
+    "ACC_Y_STD": 0.3,
+    "ACC_Z_STD": 0.05,
+    "BARO_ALT_STD": 1.466,
+    "GPS_POS_STD": 2.5,
+    "PID": {
+      "KP": 1,
+      "KI": 0,
+      "KD": 0
+    },
+    "Print_Enable": true,
+    "BufferSize": 512,
+    "OutputData": {
+      "Barometer": {
+        "Altitude": true,
+        "Pressure": true
+      },
+      "IMU": {
+        "LinearAccel": true,
+        "Orientation_Quaternion": true,
+        "EulerAngles": true
+      },
+      "KalmanFilter": {
+        "Velocity": true,
+        "Position": true
+      },
+      "GPS": {
+        "Coordinates": true,
+        "Altitude": true,
+        "Satellites": true,
+        "Lock": true
+      }
+    }
+  }

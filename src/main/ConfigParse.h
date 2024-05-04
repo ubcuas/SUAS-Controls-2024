@@ -68,7 +68,7 @@ typedef struct{
     float AcquireRate;
     float SampleTime;
     double GRAVITY;
-     double ACC_X_STD;
+    double ACC_X_STD;
     double ACC_Y_STD;
     double ACC_Z_STD;
     double BARO_ALT_STD;
