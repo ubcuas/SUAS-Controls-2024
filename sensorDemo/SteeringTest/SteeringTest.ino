@@ -1,38 +1,42 @@
-#include "advancedSteering.h"
+// #include "advancedSteering.h"
+#include <Arduino.h>
+#include <ESP32Servo.h>
+#include "encoder.h"
+#include "encoder_steering.h"
+
+double desired_heading;
+double current_heading;
+
+QueueHandle_t steeringQueue = NULL;
 
 void setup() {
-    Serial.begin(921600); // Start serial communication at 921600 baud rate
-    steeringQueue = xQueueCreate(1, sizeof(SteeringData)); // Create a queue that can hold 1 item of SteeringData type
+  Serial.begin(921600); // Start serial communication at 921600 baud rate
 
-    if (steeringQueue == NULL) {
-        Serial.println("Failed to create steering queue");
-        return; // Early exit if queue creation fails
-    }
+  // Create a queue that can hold 1 item of double type
+  steeringQueue = xQueueCreate(1, sizeof(double));
+  if (steeringQueue == NULL) {
+    Serial.println("Failed to create steering queue");
+    return; // Early exit if queue creation fails
+  }
 
-    motorSetup(); // Setup motors and start the steering task
+  steering_setup();
 }
 
 void loop() {
-    // Check if we have incoming data
-    if (Serial.available()) {
-        String inputString = Serial.readStringUntil('\n');  // Read the incoming data until newline
-        inputString.trim();  // Trim whitespace and newline characters
+  // Check if we have incoming data
+  if (Serial.available()) {
+    String inputString = Serial.readStringUntil('\n');  // Read the incoming data until newline
+    inputString.trim();  // Trim whitespace and newline characters
 
-        // Declare a variable to hold the parsed data
-        SteeringData incomingData;
-
-        // Parse the string to extract lengths
-        if (sscanf(inputString.c_str(), "%lf,%lf", &incomingData.length1, &incomingData.length2) == 2) {
-            // Successfully parsed two doubles
-            // Overwrite the current value in the queue with the new data
-            incomingData.length1 *= 0.01745;
-            incomingData.length2 *= 0.01745;
-            Serial.printf("Length1: %lf\tLength2: %lf\n", incomingData.length1, incomingData.length2);
-            if (xQueueOverwrite(steeringQueue, &incomingData) != pdPASS) {
-                Serial.println("Failed to overwrite data in steering queue");
-            }
-        } else {
-            Serial.println("Invalid format or incomplete data");
-        }
+    // Parse the string to extract desired and current headings
+    double incomingDesiredHeading, incomingCurrentHeading;
+    if (sscanf(inputString.c_str(), "%lf,%lf", &incomingDesiredHeading, &incomingCurrentHeading) == 2) {
+      // Successfully parsed two doubles
+      // Update the global variables with the new data
+      desired_heading = incomingDesiredHeading * 0.01745; // Convert to radians
+      current_heading = incomingCurrentHeading * 0.01745; // Convert to radians
+    } else {
+      Serial.println("Invalid format or incomplete data");
     }
+  }
 }
