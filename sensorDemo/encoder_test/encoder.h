@@ -1,22 +1,35 @@
-// // Encoder class
+#ifndef ENCODER_H
+#define ENCODER_H
 
-// #ifndef ENCODER_H
-// #define ENCODER_H
+#define ENC_1 25
+#define ENC_2 33
 
-// class Encoder {
-//   public:
+#define DEBOUNCE_INTERVAL 15 // ms
 
-//   Encoder();
-//   int get_count();
-//   bool forward;
-//   volatile unsigned long time;
-//   volatile int count;
+// Global variables for encoders
+bool forward_1 = true;
+bool forward_2 = true;
+volatile unsigned long time_1 = millis();
+volatile unsigned long time_2 = millis();
+volatile int count_1 = 0;
+volatile int count_2 = 0;
 
-//   friend void IRAM_ATTR enc_1_isr(); // CAREFUL!! If you modify these in another file, you have to update here!
-//   friend void IRAM_ATTR enc_2_isr();
+// Interrupt service routines
+void IRAM_ATTR enc_1_isr() {
+  unsigned long current = millis();
+  if (current - time_1 > DEBOUNCE_INTERVAL) {
+    if (forward_1) { count_1++; }
+    else { count_1--; }
+    time_1 = current;
+  }
+}
+void IRAM_ATTR enc_2_isr() {
+  unsigned long current = millis();
+  if (current - time_2 > DEBOUNCE_INTERVAL) {
+    if (forward_2) { count_2++; }
+    else { count_2--; }
+    time_2 = current;
+  }
+}
 
-//   private:
-
-// }
-
-// #endif
+#endif
