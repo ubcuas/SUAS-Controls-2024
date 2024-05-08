@@ -2,6 +2,7 @@
 
 #include <Arduino.h>
 #include <ESP32Servo.h>
+#include <math.h>
 #include "PID_peanat.h"
 #include "encoder.h"
 #include "encoder_steering.h"
@@ -11,12 +12,12 @@ Servo servo_1;
 Servo servo_2;
 
 // Initialize PID
-PID pid(10.0, 0, 0);
+PID pid(50.0, 0, 0);
 
 void steering_setup() {
-  pid.setOutputBounds(0, 150); // Limit to 150 mm extension/retraction
+  pid.setOutputBounds(-150, 150); // Limit to 150 mm extension/retraction
   pid.setSampleTime(10); // ms
-  pid.setDeadband(DIST_PER_TICK);
+  // pid.setDeadband(DIST_PER_TICK);
 
   servo_1.attach(SERVO_1, MIN_US, MAX_US);
   servo_1.setPeriodHertz(SERVO_FREQ);
@@ -59,24 +60,45 @@ double angle_diff(double angle1, double angle2) {
  */
 void servo_control(double des_heading, double current_heading) {
   SteeringData des_lengths;
-  SteeringData current_lengths = {DIST_PER_TICK*count_1, DIST_PER_TICK*count_2};
+  SteeringData current_lengths = {(double)DIST_PER_TICK*((int)count_1/2), (double)DIST_PER_TICK*((int)count_2/2)};
 
   double input = angle_diff(des_heading, current_heading);
-  if (input < FORWARD_THRESH) { // Go forward if we don't need to change our heading that much
+  Serial.printf("Input: %lf\n", input);
+  if (fabs(input) < FORWARD_THRESH) { // Go forward if we don't need to change our heading that much
     des_lengths.l1 = -100.0; // Servo 1
     des_lengths.l2 = -100.0; // Servo 2
   }
   else {
     double output = pid.compute(0.0, input);
+    // Serial.printf("Output: %lf\n", output);
     des_lengths.l1 = output;
     des_lengths.l2 = -output;
   }
 
-  // Write to servos
-  int val_1 = 90 + (des_lengths.l1 > current_lengths.l1 ? SERVO_SPEED_VALUE_ANGLE : (des_lengths.l1 < current_lengths.l1 ? -SERVO_SPEED_VALUE_ANGLE : 0));
-  servo_1.write(val_1);
-  int val_2 = 90 + (des_lengths.l2 > current_lengths.l2 ? SERVO_SPEED_VALUE_ANGLE : (des_lengths.l2 < current_lengths.l2 ? -SERVO_SPEED_VALUE_ANGLE : 0));
-  servo_2.write(val_2);
+  Serial.printf("Lengths: %lf %lf\n", des_lengths.l1, des_lengths.l2);
+
+  // Servo 1
+  if (des_lengths.l1 - current_lengths.l1 > (DIST_PER_TICK)) {
+    servo_1.write(90 + SERVO_SPEED_VALUE_ANGLE);
+    forward_1 = true;
+  } else if (des_lengths.l1 - current_lengths.l1 < -(DIST_PER_TICK)) {
+    servo_1.write(90 - SERVO_SPEED_VALUE_ANGLE);
+    forward_1 = false;
+  } else {
+    servo_1.write(90);
+  }
+
+  // Servo 2
+  if (des_lengths.l2 - current_lengths.l2 > (DIST_PER_TICK)) {
+    servo_2.write(90 - SERVO_SPEED_VALUE_ANGLE);
+    forward_2 = true;
+  } else if (des_lengths.l2 - current_lengths.l2 < -(DIST_PER_TICK)) {
+    servo_2.write(90 + SERVO_SPEED_VALUE_ANGLE);
+    forward_2 = false;
+  } else {
+    servo_2.write(90);
+  }
+
 }
 
 

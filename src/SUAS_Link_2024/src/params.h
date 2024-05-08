@@ -21,8 +21,8 @@ extern HardwareSerial CubeSerial;
 
 #define AIRCRAFT_SPEED 7.0 // m/s
 #define DRIFT_FACTOR 0.1 // TODO: find this from testing, it's arbitrary rn!!
-#define RELEASE_DELAY 1.0 // s
-#define RELEASE_MARGIN 5.0 // Tolerance margin from desired drop point that we will trigger release
+#define RELEASE_DELAY 0.0 // s // TODO!!!
+#define RELEASE_MARGIN 3.0 // Tolerance margin from desired drop point that we will trigger release
 
 #define WINDOW_SIZE 10
 

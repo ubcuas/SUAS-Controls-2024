@@ -5,6 +5,7 @@
  */
 
 #include "Arduino.h"
+#include <math.h>
 #include "PID_peanat.h"
 
 const double SECS_IN_MS = 0.001;

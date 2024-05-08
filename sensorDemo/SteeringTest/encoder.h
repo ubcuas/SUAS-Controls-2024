@@ -6,7 +6,7 @@
 #define ENC_1 25
 #define ENC_2 33
 
-#define DEBOUNCE_INTERVAL 15 // ms
+#define DEBOUNCE_INTERVAL 10 // ms
 
 // Function prototypes
 void enc_1_isr();
