@@ -1,6 +1,12 @@
 #ifndef ENCODER_STEERING_H
 #define ENCODER_STEERING_H
 
+#include <Arduino.h>
+#include <ESP32Servo.h>
+#include <math.h>
+#include "PID_peanat.h"
+#include "encoder.h"
+
 #define SERVO_1 26
 #define SERVO_2 27
 
@@ -19,14 +25,24 @@ typedef struct {
   double l2;
 } SteeringData;
 
+typedef struct {
+  double desiredYaw;
+  double currentYaw;
+  double desiredForward;
+} AngleData;
+
+extern TaskHandle_t _servoControlTask;
+extern QueueHandle_t steeringQueue;
+
 extern double desired_heading;
 extern double current_heading;
 extern volatile bool forward_1;
 extern volatile bool forward_2;
 
-void steering_setup();
+void steering_setup(double acquireRate, double kp, double ki, double kd);
 double angle_diff(double angle1, double angle2);
-void servo_control(double des_heading, double current_heading);
+void  servo_control(AngleData data);
 void servoControlTask(void *pvParameters);
+void sendSteeringData(AngleData data);
 
 #endif
