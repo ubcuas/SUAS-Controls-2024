@@ -33,6 +33,7 @@ typedef struct{
     double KP;
     double KI;
     double KD;
+    double PID_ControlRate
 }PIDConfig_t ;
 
 // Output data settings for each sensor

@@ -25,9 +25,10 @@ void ConfigParser::createDefaultConfigFile(fs::SDFS fs){
 
     // PID values
     JsonObject PID = doc.createNestedObject("PID");
-    PID["KP"] = 1.0;
+    PID["KP"] = 50.0;
     PID["KI"] = 0.0;
     PID["KD"] = 0.0;
+    PID["PID_ControlRate"] = 100.0;
 
     // Print enable
     doc["Print_Enable"] = true;
@@ -130,6 +131,7 @@ ConfigParseStatus ConfigParser::parseConfigFile(fs::SDFS fs, ConfigData_t *confi
     configData->PID.KP = doc["PID"]["KP"];
     configData->PID.KI = doc["PID"]["KI"];
     configData->PID.KD = doc["PID"]["KD"];
+    configData->PID.PID_ControlRate = doc["PID"]["PID_ControlRate"];
 
     //Printing Parameters
     configData->Print_Enable = doc["Print_Enable"];
@@ -173,9 +175,10 @@ void ConfigParser::getConfigNoSD(ConfigData_t *ConfigData){
     ConfigData->BARO_ALT_STD = 1.466;
     ConfigData->GPS_POS_STD = 2.5;
 
-    ConfigData->PID.KP = 1.0;
+    ConfigData->PID.KP = 50.0;
     ConfigData->PID.KI = 0.0;
     ConfigData->PID.KD = 0.0;
+    ConfigData->PID.PID_ControlRate = 100.0;
     
     ConfigData->Print_Enable = true;
     ConfigData->BufferSize = 512;
@@ -216,6 +219,7 @@ void ConfigParser::printConfigData(ConfigData_t *configData){
     Serial.printf("PID KP: %f\n", configData->PID.KP);
     Serial.printf("PID KI: %f\n", configData->PID.KI);
     Serial.printf("PID KD: %f\n", configData->PID.KD);
+    Serial.printf("PID Control Rate: %f\n", configData->PID.PID_ControlRate);
     
     Serial.printf("Print Enable: %d\n", configData->Print_Enable);
     Serial.printf("Buffer Size: %d\n", configData->BufferSize);

@@ -11,8 +11,7 @@
 #include "kalmanfilter.h"
 #include "WebStreamServer.h"
 #include "SDCard.h"
-#include "PID.h"
-#include "advancedSteering.h"
+#include "encoder_steering.h"
 #include "Reciever.h"
 
 #define BufferLen 500
@@ -27,7 +26,6 @@ ConfigParser configParser_inst;
 ConfigData_t configData_inst;
 
 TinyGPSPlus GPS;
-Pid PID;
 Sensors::sensors mySensor_inst;
 Sensors::sensorData_t sensorData_inst;
 KalmanFilter myKalmanFilter_inst_Z(NUM_STATES, NUM_MEASUREMENTS, NUM_CONTROL_INPUTS);
@@ -95,9 +93,8 @@ void setup()
   myKalmanFilter_inst_Y.initialize(configData_inst.SampleTime, configData_inst.ACC_Y_STD, configData_inst.GPS_POS_STD);
   myKalmanFilter_inst_X.initialize(configData_inst.SampleTime, configData_inst.ACC_X_STD, configData_inst.GPS_POS_STD);
   
-  //Initializes PID object
-  PID.PIDInit(configData_inst.AcquireRate, configData_inst.PID.KP, configData_inst.PID.KI, configData_inst.PID.KD);
-  motorSetup(); //Initialize two servo motors
+  //Steering setup
+  steering_setup(configData_inst.AcquireRate, configData_inst.PID.KP, configData_inst.PID.KI, configData_inst.PID.KD);
   
   // Set up ESP-NOW communication
   if(InitESPNow(configData_inst.BottleID) == false){
@@ -128,7 +125,7 @@ void loop()
 
   DoKalman();
   PrintSensorData();
-  PIDTesting();
+  ComputePID();
 
   //keep reading battery data
   // if(mySensor_inst.UpdateBatteryData(&sensorData_inst) != Sensors::SENSORS_OK){
@@ -359,7 +356,7 @@ void DoCount(){
   }
 }
 
-void PIDTesting(){
+void ComputePID(){
   char outputBuffer[BufferLen]; //This is for printing values out to terminal
   double target_lon=-122.12071003376428; //Example target longitude
   double target_lat=37.4181048968111; //Example target latitude
@@ -371,7 +368,7 @@ void PIDTesting(){
 
   // Take current GPS coordinates and add x,y,z, from kalman filter
   // Lat_Fast = GPS.Fast+X_Moved*ConversionFactor
-  //radius_calc= 180*radius of earth/pi
+  // radius_calc= 180*radius of earth/pi
   double radius_calc = 365285454.545;
 
   double rEarth_m = 6371000.0;
@@ -391,27 +388,17 @@ void PIDTesting(){
     setpoint = setpoint - 360;
   }
 
-  double pv = setpoint - sensorData_inst.imuData.EulerAngles.v2;
-  //Always get the shortest path
-  if(pv > 180.0){
-    pv = pv - 360.0;
-  }
-  else if(pv < -180.0){
-    pv = pv + 360.0;
-  }
+  // make the Data packet
+  AngleData data = {setpoint, sensorData_inst.imuData.EulerAngles.v2, 0};
+  // send the data packet to the queue
+  sendSteeringData(data);
 
-  //compute PID angle using process variable
-  // double motor_value = PID.PIDcalculate(pv);
-
-  //Send to servos
-  // steering(motor_value);
   double distance = GPS.distanceBetween(lon_now, lat_now, target_lon, target_lat);
   
   //Print to terminal
-  snprintf(outputBuffer, BufferLen, "Yaw: %.3lf\nSetpoint: %.3lf\nPV: %.3lf\nDistance: %.3lf\nlattitude: %.6lf\nlongitude: %.6lf\nlat_now: %.6lf\nlon_now: %.6lf\n,x: %.6lf\ny: %.6lf\nz: %.6lf\n", 
+  snprintf(outputBuffer, BufferLen, "Yaw: %.3lf\nSetpoint: %.3lf\nDistance: %.3lf\nlattitude: %.6lf\nlongitude: %.6lf\nlat_now: %.6lf\nlon_now: %.6lf\n,x: %.6lf\ny: %.6lf\nz: %.6lf\n", 
   sensorData_inst.imuData.EulerAngles.v2, 
   setpoint, 
-  pv, 
   distance,
   sensorData_inst.gpsData.Latitude,
   sensorData_inst.gpsData.Longitude,
@@ -421,7 +408,6 @@ void PIDTesting(){
   X_Yaxis(0,0),
   X_Zaxis(0,0)
   );
-  // sprintf(outputBuffer, "Pv: %.5lf \t Error: %.5lf \t Output: %.5lf\t Integral: %.5lf \t \n", pv, PID.error, yaw, PID.integral); 
   SERIAL_PORT.print(outputBuffer);
 }
 
