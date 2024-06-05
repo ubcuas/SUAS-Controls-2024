@@ -63,6 +63,8 @@ void setup() {
         // linker.request_msg(MAVLINK_MSG_ID_WIND_COV, 1);
         linker.request_msg(MAVLINK_MSG_ID_HIGH_LATENCY2, 5);
         delay(250);
+        linker.request_msg(MAVLINK_MSG_ID_SERVO_OUTPUT_RAW, 5);
+        delay(250);
     }
     digitalWrite(LED_BLUE, LOW); // Blue LED off indicates everything ready
     delay(1000);
@@ -78,8 +80,8 @@ void loop() {
 
     // Read drop point and bottle number from Pi (blocking)
     // drop_data = recieveData();
-    drop_data.lon = -123.2478006; // For testing REMOVE LATER!!!!!!!!!!!!!!!!!!!!!!!
-    drop_data.lat = 49.2624333;
+    drop_data.lon =  -123.247933; // For testing REMOVE LATER!!!!!!!!!!!!!!!!!!!!!!! , 
+    drop_data.lat = 49.262253;
     drop_data.heading = 0.0;
     drop_data.bottleID = 1;
 
@@ -94,15 +96,13 @@ void loop() {
     // calc_des_drop_state(windspeed, wind_heading, drop_data, &des_drop_data);
 
     calc_des_drop_state(0, 0, drop_data, &des_drop_data); // TODO: REMOVE LATER!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-    Serial.println(latitudeToMeters(des_drop_data.lat)-latitudeToMeters(drop_data.lat));
-    Serial.println(latitudeToMeters(des_drop_data.lon)-latitudeToMeters(drop_data.lon));
+    // Serial.println(latitudeToMeters(des_drop_data.lat)-latitudeToMeters(drop_data.lat));
+    // Serial.println(latitudeToMeters(des_drop_data.lon)-latitudeToMeters(drop_data.lon));
     
     // Send desired drop point to Pi
     snprintf(buffer, sizeof(buffer), "%.8f,%.8f,%.2f,%d\n", des_drop_data.lat, des_drop_data.lon, des_drop_data.heading, des_drop_data.bottleID);
     PiSerial.print(buffer);
     Serial.print("Sent desired drop point to Pi: "); Serial.print(buffer);
-
-    notDropped = false; // REMOVE THIS LATER!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
 
     // Wait to get close enough to desired drop point
     digitalWrite(LED_RED, HIGH);
@@ -111,31 +111,45 @@ void loop() {
         msg = pixhawk.read_messages();
         double lat = (double) msg.global_position_int.lat / 10000000.0;
         double lon = (double) msg.global_position_int.lon / 10000000.0;
-        // Serial.println("Coords: " + String(lat) + ", " + String(lon));
+        // Serial.println("Coords: " + String(lat, 8) + ", " + String(lon, 8));
 
-        double dist_from_drop_point = distance(lat, lon, des_drop_data.lat, des_drop_data.lon);
-        Serial.println("Dist: " + String(dist_from_drop_point));
-        if (dist_from_drop_point < RELEASE_MARGIN) {
-            notDropped = false;
-            Serial.println("Reached drop point");
+        if (FAILSAFE_MODE) {
+            if (msg.servo_output_raw.servo13_raw > 1500) { // If servo 13 is high, then drop the right bottle
+                des_drop_data.bottleID = 1; 
+                notDropped = false;
+                Serial.println("Failsafe mode: Right bottle dropped.");
+            } 
+            if (msg.servo_output_raw.servo14_raw > 1500) { // If servo 14 is high, then drop the left bottle
+                des_drop_data.bottleID = 2; 
+                notDropped = false;
+                Serial.println("Failsafe mode: Left bottle dropped.");
+            } 
+        }
+        else {
+            double dist_from_drop_point = distance(lat, lon, des_drop_data.lat, des_drop_data.lon);
+            Serial.println("Dist: " + String(dist_from_drop_point));
+            if (dist_from_drop_point < RELEASE_MARGIN) {
+                notDropped = false;
+                Serial.println("Reached drop point");
+            }
         }
     }
     digitalWrite(LED_RED, LOW);
 
-    // Send message to parachutes
-    broadcastMessage(des_drop_data);
-
-    delay(3000); // REMOVE LATER!!!!!!!!!!!!!!!!!!!!!!
+    // // Send message to parachutes
+    // broadcastMessage(des_drop_data);
 
     if (des_drop_data.bottleID == 1 || des_drop_data.bottleID == 3 || des_drop_data.bottleID == 5) {
-        servo_front_R.write(160);
-        servo_back_R.write(160);
+        servo_front_R.write(130);
+        servo_back_R.write(140);
     }
     else if (des_drop_data.bottleID == 2 || des_drop_data.bottleID == 4) {
-        servo_front_L.write(160);
-        servo_back_L.write(160);
+        servo_front_L.write(120);
+        servo_back_L.write(130);
     }
 
     PiSerial.println(String(des_drop_data.bottleID)); // Tell software bottle has dropped
+
+    delay(1000);
 
 }

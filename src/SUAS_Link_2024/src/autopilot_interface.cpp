@@ -235,6 +235,14 @@ Mavlink_Messages Autopilot_Interface::read_messages()
                     break;
                 }
 
+                case MAVLINK_MSG_ID_SERVO_OUTPUT_RAW:
+                {
+                    mavlink_msg_servo_output_raw_decode(&message, &(current_messages.servo_output_raw));
+                    current_messages.time_stamps.servo_output_raw = get_time_usec();
+                    this_timestamps.servo_output_raw = current_messages.time_stamps.servo_output_raw;
+                    break;
+                }
+
 				default:
 				{
 					// printf("Warning, did not handle message id %i\n",message.msgid);
@@ -265,7 +273,8 @@ Mavlink_Messages Autopilot_Interface::read_messages()
                 // this_timestamps.gps_raw                    &&
                 // this_timestamps.gps_status                 &&
                 // this_timestamps.wind                       &&
-                this_timestamps.high_latency2                                  
+                this_timestamps.high_latency2                 &&
+                this_timestamps.servo_output_raw                            
 				// this_timestamps.sys_status
 				;
     }
