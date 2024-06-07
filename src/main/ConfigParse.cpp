@@ -22,6 +22,7 @@ void ConfigParser::createDefaultConfigFile(fs::SDFS fs){
     doc["ACC_Z_STD"] = 0.05;
     doc["BARO_ALT_STD"] = 1.466;
     doc["GPS_POS_STD"] = 2.5;
+    doc["HEIGHT_THRESH"] = 17.0f;
 
     // PID values
     JsonObject PID = doc.createNestedObject("PID");
@@ -116,6 +117,9 @@ ConfigParseStatus ConfigParser::parseConfigFile(fs::SDFS fs, ConfigData_t *confi
     configData->AcquireRate = doc["AcquireRate"];
     configData->SampleTime = 1.0 / configData->AcquireRate;
 
+    //Activation Parameters
+    configData->HEIGHT_THRESH = doc["HEIGHT_THRESH"];
+
     //Sensor Fusion Parameters
     configData->GRAVITY = doc["GRAVITY"];
     configData->ACC_X_STD = doc["ACC_X_STD"];
@@ -167,6 +171,8 @@ void ConfigParser::getConfigNoSD(ConfigData_t *ConfigData){
     
     ConfigData->AcquireRate = 57.0f;
     ConfigData->SampleTime = 1.0 / ConfigData->AcquireRate;
+
+    ConfigData->HEIGHT_THRESH = 17.0f;
     
     ConfigData->GRAVITY = 9.809;
     ConfigData->ACC_X_STD = 0.3 * ConfigData->GRAVITY;
@@ -208,6 +214,8 @@ void ConfigParser::printConfigData(ConfigData_t *configData){
     
     Serial.printf("Acquire Rate: %f\n", configData->AcquireRate);
     Serial.printf("Sample Time: %f\n", configData->SampleTime);
+
+    Serial.printf("HEIGHT_THRESH: %f\n", configData->HEIGHT_THRESH);
     
     Serial.printf("Gravity: %f\n", configData->GRAVITY);
     Serial.printf("ACC_X_STD: %f\n", configData->ACC_X_STD);

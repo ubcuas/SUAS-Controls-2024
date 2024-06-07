@@ -33,9 +33,9 @@ void steering_setup(double acquireRate, double kp, double ki, double kd) {
 
   // Initialize servos
   Serial.println("Initializing servos");
-  servo_1.attach(SERVO_1, MIN_US, MAX_US);
+  servo_1.attach(SERVO_1);
   servo_1.setPeriodHertz(SERVO_FREQ);
-  servo_2.attach(SERVO_2, MIN_US, MAX_US);
+  servo_2.attach(SERVO_2);
   servo_2.setPeriodHertz(SERVO_FREQ);
   // No spin
   servo_1.write(90);
@@ -101,8 +101,8 @@ void servo_control(AngleData data) {
   else {
     double output = pid.compute(0.0, input);
     Serial.printf("PID Output: %lf\n", output);
-    des_lengths.l1 = output;
-    des_lengths.l2 = -output;
+    des_lengths.l1 = -output;
+    des_lengths.l2 = output;
   }
 
   Serial.printf("Lengths: %lf %lf\n", des_lengths.l1, des_lengths.l2);    //- -- Comment me when testing is done

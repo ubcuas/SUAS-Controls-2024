@@ -78,6 +78,7 @@ typedef struct{
     bool Print_Enable;
     uint16_t BufferSize;
     OutputDataConfig_t OutputData;
+    float HEIGHT_THRESH;
 } ConfigData_t;
 
 class ConfigParser{

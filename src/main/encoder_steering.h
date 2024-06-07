@@ -17,7 +17,7 @@
 #define PI 3.14159
 
 static const double DRUM_DIAMETER = 22; // mm
-static const double DIST_PER_TICK = (double)PI*DRUM_DIAMETER / 4.0; // mm (There are 4 markers around the wheel)
+static const double DIST_PER_TICK = (double)PI*DRUM_DIAMETER / 6.0; // mm (There are 4 markers around the wheel)
 static const double FORWARD_THRESH = 10.0 * (double)PI/180.0; // rad (Go forward if we are within 10 degrees)
 
 typedef struct {

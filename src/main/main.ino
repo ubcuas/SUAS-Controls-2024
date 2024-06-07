@@ -391,7 +391,14 @@ void ComputePID(){
   // make the Data packet
   AngleData data = {setpoint, sensorData_inst.imuData.EulerAngles.v2, 0};
   // send the data packet to the queue
-  sendSteeringData(data);
+  if (sensorData_inst.barometerData.Altitude <= configData_inst.HEIGHT_THRESH){
+    sendSteeringData(data);
+  }
+  else {
+    count_1 = 0; // Keep resetting encoders to zero until steering activated
+    count_2 = 0;
+  }
+  
 
   double distance = GPS.distanceBetween(lon_now, lat_now, target_lon, target_lat);
   
