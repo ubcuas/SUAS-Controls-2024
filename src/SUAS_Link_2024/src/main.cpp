@@ -140,12 +140,12 @@ void loop() {
     // broadcastMessage(des_drop_data);
 
     if (des_drop_data.bottleID == 1 || des_drop_data.bottleID == 3 || des_drop_data.bottleID == 5) {
-        servo_front_R.write(130);
-        servo_back_R.write(140);
+        servo_front_R.write(160);
+        servo_back_R.write(170);
     }
     else if (des_drop_data.bottleID == 2 || des_drop_data.bottleID == 4) {
-        servo_front_L.write(120);
-        servo_back_L.write(130);
+        servo_front_L.write(150);
+        servo_back_L.write(160);
     }
 
     PiSerial.println(String(des_drop_data.bottleID)); // Tell software bottle has dropped
