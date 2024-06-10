@@ -379,26 +379,30 @@ void ComputePID(){
 
   double lon_now = sensorData_inst.gpsData.refLongitude + delta_long;
   double lat_now = sensorData_inst.gpsData.refLatitude + delta_lat;
-  //Height = current GPS_Position & use kinematics to get new height? To be done
+  // Height = current GPS_Position & use kinematics to get new height? To be done
   
-  //Get process variable - pv is the error between (lot & lat_fast direction)-(target) / current heading-target heading
+  // Get process variable - pv is the error between (lot & lat_fast direction)-(target) / current heading-target heading
   double setpoint = GPS.courseTo(lat_now, lon_now, target_lat, target_lon); //Get the heading to the target
-  //convert heading from 0-360 to -180-180
+  // Convert heading from 0-360 to -180-180
   if(setpoint > 180){
     setpoint = setpoint - 360;
   }
-
-  // make the Data packet
-  AngleData data = {setpoint, sensorData_inst.imuData.EulerAngles.v2, 0};
-  // send the data packet to the queue
-  if (sensorData_inst.barometerData.Altitude <= configData_inst.HEIGHT_THRESH){
+  
+  // Send the data packet to the queue (i.e. activate steering), if detect that parachute has fallen below HEIGHT_THRESH
+  // double height = X_Zaxis(0, 0);
+  double height = sensorData_inst.barometerData.Altitude - sensorData_inst.barometerData.AltitudeOffset;
+//   Serial.println("\nHeight: " + String(height) + "\n");
+  if (height <= configData_inst.HEIGHT_THRESH && height >= 0.0){
+    // Make the Data packet
+    AngleData data = {setpoint, sensorData_inst.imuData.EulerAngles.v2, 0};
     sendSteeringData(data);
   }
   else {
     count_1 = 0; // Keep resetting encoders to zero until steering activated
     count_2 = 0;
+    AngleData data = {0, 0, -1}; // I'm using the desiredForward as a flag to turn off the servos (-1 = off)
+    sendSteeringData(data);
   }
-  
 
   double distance = GPS.distanceBetween(lon_now, lat_now, target_lon, target_lat);
   

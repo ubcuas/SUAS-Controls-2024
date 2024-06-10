@@ -44,5 +44,6 @@ double angle_diff(double angle1, double angle2);
 void  servo_control(AngleData data);
 void servoControlTask(void *pvParameters);
 void sendSteeringData(AngleData data);
+void do_nothing();
 
 #endif

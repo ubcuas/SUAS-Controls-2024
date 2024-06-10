@@ -89,6 +89,12 @@ double angle_diff(double angle1, double angle2) {
  * @param data: AngleData struct containing desired and current yaw values
  */
 void servo_control(AngleData data) {
+
+  if (data.desiredForward == -1){
+    do_nothing();
+    return;
+  }
+
   SteeringData des_lengths;
   SteeringData current_lengths = {(double)DIST_PER_TICK*((int)count_1/2), (double)DIST_PER_TICK*((int)count_2/2)};
 
@@ -163,5 +169,13 @@ void sendSteeringData(AngleData data) {
     if (xQueueOverwrite(steeringQueue, &data) != pdPASS) {
         Serial.println("Failed to overwrite data in steering queue");
     }
+}
+
+/*
+ * Don't move the servos
+ */
+void do_nothing() {
+  servo_1.write(90);
+  servo_2.write(90);
 }
 
