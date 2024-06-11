@@ -40,6 +40,8 @@ uint8_t GPS_Loop_Counter = 0;
 
 // esp_now_peer_info_t peerInfo;
 
+datapacket myData;
+
 void PrintSensorData();
 void DoKalman();
 void DoCount();
@@ -68,6 +70,11 @@ void setup()
   // Print the configuration data
   configParser_inst.printConfigData(&configData_inst);
 
+  // Set up ESP-NOW communication
+  if(InitESPNow(configData_inst.BottleID) == false){
+    SERIAL_PORT.println("ESP-NOW init failed");
+  }
+
   // Initialize the WebStreamServer
   webStreamServer_inst.init((const char *)configData_inst.SSID, (const char *)configData_inst.Password);
   webStreamServer_inst.setCustomFunction([&]() { mySensor_inst.resetGPSReference(); });
@@ -95,11 +102,6 @@ void setup()
   
   //Steering setup
   steering_setup(configData_inst.AcquireRate, configData_inst.PID.KP, configData_inst.PID.KI, configData_inst.PID.KD);
-  
-  // Set up ESP-NOW communication
-  if(InitESPNow(configData_inst.BottleID) == false){
-    SERIAL_PORT.println("ESP-NOW init failed");
-  }
 
   delay(1000);
   timeStart = millis();
@@ -358,9 +360,10 @@ void DoCount(){
 
 void ComputePID(){
   char outputBuffer[BufferLen]; //This is for printing values out to terminal
-  double target_lon=-122.12071003376428; //Example target longitude
-  double target_lat=37.4181048968111; //Example target latitude
-
+  // double target_lon=-122.12071003376428; //Example target longitude
+  // double target_lat=37.4181048968111; //Example target latitude
+  double target_lon=myData.lon;
+  double target_lat=myData.lat;
   //To access kalman filter values for current x,y,&z direction
   MatrixXd X_Zaxis = myKalmanFilter_inst_Z.getState();
   MatrixXd X_Yaxis = myKalmanFilter_inst_Y.getState();
@@ -392,7 +395,7 @@ void ComputePID(){
   // double height = X_Zaxis(0, 0);
   double height = sensorData_inst.barometerData.Altitude - sensorData_inst.barometerData.AltitudeOffset;
 //   Serial.println("\nHeight: " + String(height) + "\n");
-  if (height <= configData_inst.HEIGHT_THRESH && height >= 0.0){
+  if (height <= configData_inst.HEIGHT_THRESH && height >= 1.0){
     // Make the Data packet
     AngleData data = {setpoint, sensorData_inst.imuData.EulerAngles.v2, 0};
     sendSteeringData(data);
@@ -406,19 +409,19 @@ void ComputePID(){
 
   double distance = GPS.distanceBetween(lon_now, lat_now, target_lon, target_lat);
   
-  //Print to terminal
-  snprintf(outputBuffer, BufferLen, "Yaw: %.3lf\nSetpoint: %.3lf\nDistance: %.3lf\nlattitude: %.6lf\nlongitude: %.6lf\nlat_now: %.6lf\nlon_now: %.6lf\n,x: %.6lf\ny: %.6lf\nz: %.6lf\n", 
-  sensorData_inst.imuData.EulerAngles.v2, 
-  setpoint, 
-  distance,
-  sensorData_inst.gpsData.Latitude,
-  sensorData_inst.gpsData.Longitude,
-  lat_now,
-  lon_now,
-  X_Xaxis(0,0),
-  X_Yaxis(0,0),
-  X_Zaxis(0,0)
-  );
-  SERIAL_PORT.print(outputBuffer);
+  // //Print to terminal
+  // snprintf(outputBuffer, BufferLen, "Yaw: %.3lf\nSetpoint: %.3lf\nDistance: %.3lf\nlattitude: %.6lf\nlongitude: %.6lf\nlat_now: %.6lf\nlon_now: %.6lf\n,x: %.6lf\ny: %.6lf\nz: %.6lf\n", 
+  // sensorData_inst.imuData.EulerAngles.v2, 
+  // setpoint, 
+  // distance,
+  // sensorData_inst.gpsData.Latitude,
+  // sensorData_inst.gpsData.Longitude,
+  // lat_now,
+  // lon_now,
+  // X_Xaxis(0,0),
+  // X_Yaxis(0,0),
+  // X_Zaxis(0,0)
+  // );
+  // SERIAL_PORT.print(outputBuffer);
 }
 

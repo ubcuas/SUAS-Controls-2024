@@ -99,19 +99,19 @@ void servo_control(AngleData data) {
   SteeringData current_lengths = {(double)DIST_PER_TICK*((int)count_1/2), (double)DIST_PER_TICK*((int)count_2/2)};
 
   double input = angle_diff(data.desiredYaw, data.currentYaw);
-  Serial.printf("PID Input: %lf\n", input);   // Comment When testing is done
+  // Serial.printf("PID Input: %lf\n", input);   // Comment When testing is done
   if (fabs(input) < FORWARD_THRESH) { // Go forward if we don't need to change our heading that much
     des_lengths.l1 = -100.0; // Servo 1
     des_lengths.l2 = -100.0; // Servo 2
   }
   else {
     double output = pid.compute(0.0, input);
-    Serial.printf("PID Output: %lf\n", output);
+    // Serial.printf("PID Output: %lf\n", output);
     des_lengths.l1 = -output;
     des_lengths.l2 = output;
   }
 
-  Serial.printf("Lengths: %lf %lf\n", des_lengths.l1, des_lengths.l2);    //- -- Comment me when testing is done
+  // Serial.printf("Lengths: %lf %lf\n", des_lengths.l1, des_lengths.l2);    //- -- Comment me when testing is done
 
   // Servo 1
   if (des_lengths.l1 - current_lengths.l1 > (DIST_PER_TICK)) {
@@ -151,7 +151,7 @@ void servoControlTask(void *pvParameters) {
         // Check if we have incoming data
         if (xQueueReceive(steeringQueue, &incomingData, 0) == pdTRUE) {
             // Successfully received data
-            Serial.printf("Desired yaw: %lf, Current yaw: %lf, Desired forward: %lf\n", incomingData.desiredYaw, incomingData.currentYaw, incomingData.desiredForward);
+            // Serial.printf("Desired yaw: %lf, Current yaw: %lf, Desired forward: %lf\n", incomingData.desiredYaw, incomingData.currentYaw, incomingData.desiredForward);
         }
         // Call servo_control function here
         servo_control(incomingData); // Modify parameters as needed

@@ -446,7 +446,7 @@ SENSORS_Status_t sensors::readGPSData(){
     SENSORS_Status_t status = SENSORS_OK;
     // Read the GPS
     if(gps.update() != gpsLowLevel::GPS_OK){
-        SERIAL_PORT.println(F("GPS update failed, maybe no data in buffer? or wrong Pin connection (RX-TX)"));
+        // SERIAL_PORT.println(F("GPS update failed, maybe no data in buffer? or wrong Pin connection (RX-TX)"));
         status = SENSORS_FAIL;
         return status;
     }

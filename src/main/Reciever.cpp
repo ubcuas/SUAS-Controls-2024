@@ -7,19 +7,21 @@
 */
 #include "Reciever.h"
 
-datapacket myData;
+extern datapacket myData;
 responsepacket response;
 
 uint8_t Bottle_ID;
 
 bool InitESPNow(uint8_t Bottle_id) {
   Bottle_ID = Bottle_id;
-  // WiFi.mode(WIFI_STA);
+  WiFi.mode(WIFI_AP_STA); // https://www.electrosoftcloud.com/en/esp32-wifi-and-esp-now-simultaneously/
   if (esp_now_init() != ESP_OK) {
     Serial.println("Error initializing ESP-NOW");
     return false;
   }
   esp_now_register_recv_cb(OnDataRecv);
+  Serial.print("MAC address: ");
+  Serial.println(WiFi.macAddress());
   return true;
 }
 
@@ -29,9 +31,9 @@ void OnDataRecv(const uint8_t * mac, const uint8_t *incomingData, int len) {
   Serial.print("Bytes received: ");
   Serial.println(len);
   Serial.print("lat: ");
-  Serial.println(myData.lat);
+  Serial.println(myData.lat, 7);
   Serial.print("lon: ");
-  Serial.println(myData.lon);
+  Serial.println(myData.lon, 7);
   Serial.print("heading: ");
   Serial.println(myData.heading);
   Serial.print("bottleID: ");
