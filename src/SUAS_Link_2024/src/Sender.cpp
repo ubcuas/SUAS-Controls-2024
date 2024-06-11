@@ -51,7 +51,10 @@ bool broadcastMessage(struct_message myData){
   //timer for timeout
   unsigned long start = millis();
   esp_err_t result2 = esp_now_send(0, (uint8_t *) &myData, sizeof(myData)); // peer_addr 0 means send to all
-  if (result2 == ESP_OK) {  
+  if (result2 == ESP_OK) { 
+
+    return true; // I AM BYPASSING RETURN MESSAGE LOL
+
     //Wait for confirmation from reciever
     while(!success){
       if (millis() - start > TIMEOUT_MILLIS){

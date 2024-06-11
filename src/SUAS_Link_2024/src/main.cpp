@@ -52,6 +52,7 @@ void setup() {
     peerInfo.encrypt = false;
     // Register parachute boards
     memcpy(peerInfo.peer_addr, ADDRESS_1, 6);
+    memcpy(peerInfo.peer_addr, ADDRESS_2, 6);
     if (esp_now_add_peer(&peerInfo) != ESP_OK) { Serial.println("Failed to add peer"); }
     
     digitalWrite(LED_RED, LOW); // Red LED off indicates comminucation established
@@ -104,6 +105,11 @@ void loop() {
     PiSerial.print(buffer);
     Serial.print("Sent desired drop point to Pi: "); Serial.print(buffer);
 
+    // Send message to parachutes (try 3 times; this is time sensitive so nothing we can do if it fails)
+    for (int i = 0; i < 3; i++) {
+        broadcastMessage(des_drop_data);
+    }
+
     // Wait to get close enough to desired drop point
     digitalWrite(LED_RED, HIGH);
     while (notDropped) {
@@ -135,9 +141,6 @@ void loop() {
         }
     }
     digitalWrite(LED_RED, LOW);
-
-    // // Send message to parachutes
-    // broadcastMessage(des_drop_data);
 
     if (des_drop_data.bottleID == 1 || des_drop_data.bottleID == 3 || des_drop_data.bottleID == 5) {
         servo_front_R.write(160);
