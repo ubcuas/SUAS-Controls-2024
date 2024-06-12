@@ -78,8 +78,8 @@ void loop() {
 
     // Read drop point and bottle number from Pi (blocking)
     // drop_data = recieveData();
-    drop_data.lon = -123.2478006; // For testing REMOVE LATER!!!!!!!!!!!!!!!!!!!!!!!
-    drop_data.lat = 49.2624333;
+    drop_data.lon =  -123.247933; // For testing REMOVE LATER!!!!!!!!!!!!!!!!!!!!!!! , 
+    drop_data.lat = 49.262253;
     drop_data.heading = 0.0;
     drop_data.bottleID = 1;
 
@@ -102,7 +102,8 @@ void loop() {
     PiSerial.print(buffer);
     Serial.print("Sent desired drop point to Pi: "); Serial.print(buffer);
 
-    notDropped = false; // REMOVE THIS LATER!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+    msg = pixhawk.read_messages();
+    Serial.println(msg.heartbeat.system_status);
 
     // Wait to get close enough to desired drop point
     digitalWrite(LED_RED, HIGH);
@@ -111,7 +112,7 @@ void loop() {
         msg = pixhawk.read_messages();
         double lat = (double) msg.global_position_int.lat / 10000000.0;
         double lon = (double) msg.global_position_int.lon / 10000000.0;
-        // Serial.println("Coords: " + String(lat) + ", " + String(lon));
+        // Serial.println("Coords: " + String(lat, 8) + ", " + String(lon, 8));
 
         double dist_from_drop_point = distance(lat, lon, des_drop_data.lat, des_drop_data.lon);
         Serial.println("Dist: " + String(dist_from_drop_point));
@@ -122,10 +123,8 @@ void loop() {
     }
     digitalWrite(LED_RED, LOW);
 
-    // Send message to parachutes
-    broadcastMessage(des_drop_data);
-
-    delay(3000); // REMOVE LATER!!!!!!!!!!!!!!!!!!!!!!
+    // // Send message to parachutes
+    // broadcastMessage(des_drop_data);
 
     if (des_drop_data.bottleID == 1 || des_drop_data.bottleID == 3 || des_drop_data.bottleID == 5) {
         servo_front_R.write(160);

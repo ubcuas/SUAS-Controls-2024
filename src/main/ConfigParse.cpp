@@ -22,12 +22,14 @@ void ConfigParser::createDefaultConfigFile(fs::SDFS fs){
     doc["ACC_Z_STD"] = 0.05;
     doc["BARO_ALT_STD"] = 1.466;
     doc["GPS_POS_STD"] = 2.5;
+    doc["HEIGHT_THRESH"] = 17.0f;
 
     // PID values
     JsonObject PID = doc.createNestedObject("PID");
-    PID["KP"] = 1.0;
+    PID["KP"] = 50.0;
     PID["KI"] = 0.0;
     PID["KD"] = 0.0;
+    PID["PID_ControlRate"] = 100.0;
 
     // Print enable
     doc["Print_Enable"] = true;
@@ -115,6 +117,9 @@ ConfigParseStatus ConfigParser::parseConfigFile(fs::SDFS fs, ConfigData_t *confi
     configData->AcquireRate = doc["AcquireRate"];
     configData->SampleTime = 1.0 / configData->AcquireRate;
 
+    //Activation Parameters
+    configData->HEIGHT_THRESH = doc["HEIGHT_THRESH"];
+
     //Sensor Fusion Parameters
     configData->GRAVITY = doc["GRAVITY"];
     configData->ACC_X_STD = doc["ACC_X_STD"];
@@ -130,6 +135,7 @@ ConfigParseStatus ConfigParser::parseConfigFile(fs::SDFS fs, ConfigData_t *confi
     configData->PID.KP = doc["PID"]["KP"];
     configData->PID.KI = doc["PID"]["KI"];
     configData->PID.KD = doc["PID"]["KD"];
+    configData->PID.PID_ControlRate = doc["PID"]["PID_ControlRate"];
 
     //Printing Parameters
     configData->Print_Enable = doc["Print_Enable"];
@@ -165,6 +171,8 @@ void ConfigParser::getConfigNoSD(ConfigData_t *ConfigData){
     
     ConfigData->AcquireRate = 57.0f;
     ConfigData->SampleTime = 1.0 / ConfigData->AcquireRate;
+
+    ConfigData->HEIGHT_THRESH = 17.0f;
     
     ConfigData->GRAVITY = 9.809;
     ConfigData->ACC_X_STD = 0.3 * ConfigData->GRAVITY;
@@ -173,9 +181,10 @@ void ConfigParser::getConfigNoSD(ConfigData_t *ConfigData){
     ConfigData->BARO_ALT_STD = 1.466;
     ConfigData->GPS_POS_STD = 2.5;
 
-    ConfigData->PID.KP = 1.0;
+    ConfigData->PID.KP = 50.0;
     ConfigData->PID.KI = 0.0;
     ConfigData->PID.KD = 0.0;
+    ConfigData->PID.PID_ControlRate = 100.0;
     
     ConfigData->Print_Enable = true;
     ConfigData->BufferSize = 512;
@@ -205,6 +214,8 @@ void ConfigParser::printConfigData(ConfigData_t *configData){
     
     Serial.printf("Acquire Rate: %f\n", configData->AcquireRate);
     Serial.printf("Sample Time: %f\n", configData->SampleTime);
+
+    Serial.printf("HEIGHT_THRESH: %f\n", configData->HEIGHT_THRESH);
     
     Serial.printf("Gravity: %f\n", configData->GRAVITY);
     Serial.printf("ACC_X_STD: %f\n", configData->ACC_X_STD);
@@ -216,6 +227,7 @@ void ConfigParser::printConfigData(ConfigData_t *configData){
     Serial.printf("PID KP: %f\n", configData->PID.KP);
     Serial.printf("PID KI: %f\n", configData->PID.KI);
     Serial.printf("PID KD: %f\n", configData->PID.KD);
+    Serial.printf("PID Control Rate: %f\n", configData->PID.PID_ControlRate);
     
     Serial.printf("Print Enable: %d\n", configData->Print_Enable);
     Serial.printf("Buffer Size: %d\n", configData->BufferSize);

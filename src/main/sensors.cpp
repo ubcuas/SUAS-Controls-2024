@@ -363,6 +363,12 @@ SENSORS_Status_t sensors::readIMUData(){
               double t4 = +1.0 - 2.0 * (q2sqr + q3 * q3);
               double yaw = -1 * atan2(t3, t4) * 180.0 / PI;
 
+              // Add 180 degrees offset to yaw
+              yaw += YAW_OFFSET;
+              if (yaw > 180.0) {
+                yaw -= 360.0;
+              }
+
               //update the Values
               sensorData.imuData.EulerAngles.set(roll, pitch, yaw);
             }
@@ -446,7 +452,7 @@ SENSORS_Status_t sensors::readGPSData(){
     SENSORS_Status_t status = SENSORS_OK;
     // Read the GPS
     if(gps.update() != gpsLowLevel::GPS_OK){
-        SERIAL_PORT.println(F("GPS update failed, maybe no data in buffer? or wrong Pin connection (RX-TX)"));
+        // SERIAL_PORT.println(F("GPS update failed, maybe no data in buffer? or wrong Pin connection (RX-TX)"));
         status = SENSORS_FAIL;
         return status;
     }
