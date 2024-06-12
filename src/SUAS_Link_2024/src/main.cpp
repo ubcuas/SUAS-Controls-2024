@@ -81,10 +81,10 @@ void loop() {
 
     // Read drop point and bottle number from Pi (blocking)
     // drop_data = recieveData();
-    drop_data.lon =  -123.247933; // For testing REMOVE LATER!!!!!!!!!!!!!!!!!!!!!!! , 
-    drop_data.lat = 49.262253;
+    drop_data.lon = -123.0734507; // For testing REMOVE LATER!!!!!!!!!!!!!!!!!!!!!!!
+    drop_data.lat = 49.2444132;
     drop_data.heading = 0.0;
-    drop_data.bottleID = 1;
+    drop_data.bottleID = 2;
 
     bool notDropped = true;
     snprintf(buffer, sizeof(buffer), "Received data from Pi: %.8f,%.8f,%.2f,%d\n", drop_data.lat, drop_data.lon, drop_data.heading, drop_data.bottleID); Serial.print(buffer);
