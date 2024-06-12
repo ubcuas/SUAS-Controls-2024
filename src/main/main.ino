@@ -362,8 +362,16 @@ void ComputePID(){
   char outputBuffer[BufferLen]; //This is for printing values out to terminal
   // double target_lon=-122.12071003376428; //Example target longitude
   // double target_lat=37.4181048968111; //Example target latitude
-  double target_lon=myData.lon;
-  double target_lat=myData.lat;
+  double target_lon;
+  double target_lat;
+  if (myData.bottleID == configData_inst.BottleID){
+    target_lon = myData.lon;
+    target_lat = myData.lat;
+  }
+  else {
+    target_lon = 0;
+    target_lat = 0;
+  }
   //To access kalman filter values for current x,y,&z direction
   MatrixXd X_Zaxis = myKalmanFilter_inst_Z.getState();
   MatrixXd X_Yaxis = myKalmanFilter_inst_Y.getState();
@@ -394,7 +402,7 @@ void ComputePID(){
   // Send the data packet to the queue (i.e. activate steering), if detect that parachute has fallen below HEIGHT_THRESH
   // double height = X_Zaxis(0, 0);
   double height = sensorData_inst.barometerData.Altitude - sensorData_inst.barometerData.AltitudeOffset;
-//   Serial.println("\nHeight: " + String(height) + "\n");
+  // Serial.println("\nHeight: " + String(height) + "\n");
   if (height <= configData_inst.HEIGHT_THRESH && height >= 1.0){
     // Make the Data packet
     AngleData data = {setpoint, sensorData_inst.imuData.EulerAngles.v2, 0};
