@@ -11,8 +11,7 @@
 #include "kalmanfilter.h"
 #include "WebStreamServer.h"
 #include "SDCard.h"
-#include "PID.h"
-#include "Steering.h"
+#include "encoder_steering.h"
 #include "Reciever.h"
 
 #define BufferLen 500
@@ -27,7 +26,6 @@ ConfigParser configParser_inst;
 ConfigData_t configData_inst;
 
 TinyGPSPlus GPS;
-Pid PID;
 Sensors::sensors mySensor_inst;
 Sensors::sensorData_t sensorData_inst;
 KalmanFilter myKalmanFilter_inst_Z(NUM_STATES, NUM_MEASUREMENTS, NUM_CONTROL_INPUTS);
@@ -41,6 +39,8 @@ unsigned long timeStart = 0;
 uint8_t GPS_Loop_Counter = 0;
 
 // esp_now_peer_info_t peerInfo;
+
+datapacket myData;
 
 void PrintSensorData();
 void DoKalman();
@@ -70,6 +70,11 @@ void setup()
   // Print the configuration data
   configParser_inst.printConfigData(&configData_inst);
 
+  // Set up ESP-NOW communication
+  if(InitESPNow(configData_inst.BottleID) == false){
+    SERIAL_PORT.println("ESP-NOW init failed");
+  }
+
   // Initialize the WebStreamServer
   webStreamServer_inst.init((const char *)configData_inst.SSID, (const char *)configData_inst.Password);
   webStreamServer_inst.setCustomFunction([&]() { mySensor_inst.resetGPSReference(); });
@@ -95,14 +100,8 @@ void setup()
   myKalmanFilter_inst_Y.initialize(configData_inst.SampleTime, configData_inst.ACC_Y_STD, configData_inst.GPS_POS_STD);
   myKalmanFilter_inst_X.initialize(configData_inst.SampleTime, configData_inst.ACC_X_STD, configData_inst.GPS_POS_STD);
   
-  //Initializes PID object
-  PID.PIDInit(configData_inst.AcquireRate, configData_inst.PID.KP, configData_inst.PID.KI, configData_inst.PID.KD);
-  motorSetup(); //Initialize two servo motors
-  
-  // Set up ESP-NOW communication
-  if(InitESPNow(configData_inst.BottleID) == false){
-    SERIAL_PORT.println("ESP-NOW init failed");
-  }
+  //Steering setup
+  steering_setup(configData_inst.AcquireRate, configData_inst.PID.KP, configData_inst.PID.KI, configData_inst.PID.KD);
 
   delay(1000);
   timeStart = millis();
@@ -128,7 +127,7 @@ void loop()
 
   DoKalman();
   PrintSensorData();
-  PIDTesting();
+  ComputePID();
 
   //keep reading battery data
   // if(mySensor_inst.UpdateBatteryData(&sensorData_inst) != Sensors::SENSORS_OK){
@@ -359,11 +358,20 @@ void DoCount(){
   }
 }
 
-void PIDTesting(){
+void ComputePID(){
   char outputBuffer[BufferLen]; //This is for printing values out to terminal
-  double target_lon=-122.12071003376428; //Example target longitude
-  double target_lat=37.4181048968111; //Example target latitude
-
+  // double target_lon=-122.12071003376428; //Example target longitude
+  // double target_lat=37.4181048968111; //Example target latitude
+  double target_lon;
+  double target_lat;
+  if (myData.bottleID == configData_inst.BottleID){
+    target_lon = myData.lon;
+    target_lat = myData.lat;
+  }
+  else {
+    target_lon = 0;
+    target_lat = 0;
+  }
   //To access kalman filter values for current x,y,&z direction
   MatrixXd X_Zaxis = myKalmanFilter_inst_Z.getState();
   MatrixXd X_Yaxis = myKalmanFilter_inst_Y.getState();
@@ -371,7 +379,7 @@ void PIDTesting(){
 
   // Take current GPS coordinates and add x,y,z, from kalman filter
   // Lat_Fast = GPS.Fast+X_Moved*ConversionFactor
-  //radius_calc= 180*radius of earth/pi
+  // radius_calc= 180*radius of earth/pi
   double radius_calc = 365285454.545;
 
   double rEarth_m = 6371000.0;
@@ -382,46 +390,46 @@ void PIDTesting(){
 
   double lon_now = sensorData_inst.gpsData.refLongitude + delta_long;
   double lat_now = sensorData_inst.gpsData.refLatitude + delta_lat;
-  //Height = current GPS_Position & use kinematics to get new height? To be done
+  // Height = current GPS_Position & use kinematics to get new height? To be done
   
-  //Get process variable - pv is the error between (lot & lat_fast direction)-(target) / current heading-target heading
+  // Get process variable - pv is the error between (lot & lat_fast direction)-(target) / current heading-target heading
   double setpoint = GPS.courseTo(lat_now, lon_now, target_lat, target_lon); //Get the heading to the target
-  //convert heading from 0-360 to -180-180
+  // Convert heading from 0-360 to -180-180
   if(setpoint > 180){
     setpoint = setpoint - 360;
   }
-
-  double pv = setpoint - sensorData_inst.imuData.EulerAngles.v2;
-  //Always get the shortest path
-  if(pv > 180.0){
-    pv = pv - 360.0;
+  
+  // Send the data packet to the queue (i.e. activate steering), if detect that parachute has fallen below HEIGHT_THRESH
+  // double height = X_Zaxis(0, 0);
+  double height = sensorData_inst.barometerData.Altitude - sensorData_inst.barometerData.AltitudeOffset;
+  // Serial.println("\nHeight: " + String(height) + "\n");
+  if (height <= configData_inst.HEIGHT_THRESH && height >= 1.0){
+    // Make the Data packet
+    AngleData data = {setpoint, sensorData_inst.imuData.EulerAngles.v2, 0};
+    sendSteeringData(data);
   }
-  else if(pv < -180.0){
-    pv = pv + 360.0;
+  else {
+    count_1 = 0; // Keep resetting encoders to zero until steering activated
+    count_2 = 0;
+    AngleData data = {0, 0, -1}; // I'm using the desiredForward as a flag to turn off the servos (-1 = off)
+    sendSteeringData(data);
   }
 
-  //compute PID angle using process variable
-  // double motor_value = PID.PIDcalculate(pv);
-
-  //Send to servos
-  // steering(motor_value);
   double distance = GPS.distanceBetween(lon_now, lat_now, target_lon, target_lat);
   
-  //Print to terminal
-  snprintf(outputBuffer, BufferLen, "Yaw: %.3lf\nSetpoint: %.3lf\nPV: %.3lf\nDistance: %.3lf\nlattitude: %.6lf\nlongitude: %.6lf\nlat_now: %.6lf\nlon_now: %.6lf\n,x: %.6lf\ny: %.6lf\nz: %.6lf\n", 
-  sensorData_inst.imuData.EulerAngles.v2, 
-  setpoint, 
-  pv, 
-  distance,
-  sensorData_inst.gpsData.Latitude,
-  sensorData_inst.gpsData.Longitude,
-  lat_now,
-  lon_now,
-  X_Xaxis(0,0),
-  X_Yaxis(0,0),
-  X_Zaxis(0,0)
-  );
-  // sprintf(outputBuffer, "Pv: %.5lf \t Error: %.5lf \t Output: %.5lf\t Integral: %.5lf \t \n", pv, PID.error, yaw, PID.integral); 
-  SERIAL_PORT.print(outputBuffer);
+  // //Print to terminal
+  // snprintf(outputBuffer, BufferLen, "Yaw: %.3lf\nSetpoint: %.3lf\nDistance: %.3lf\nlattitude: %.6lf\nlongitude: %.6lf\nlat_now: %.6lf\nlon_now: %.6lf\n,x: %.6lf\ny: %.6lf\nz: %.6lf\n", 
+  // sensorData_inst.imuData.EulerAngles.v2, 
+  // setpoint, 
+  // distance,
+  // sensorData_inst.gpsData.Latitude,
+  // sensorData_inst.gpsData.Longitude,
+  // lat_now,
+  // lon_now,
+  // X_Xaxis(0,0),
+  // X_Yaxis(0,0),
+  // X_Zaxis(0,0)
+  // );
+  // SERIAL_PORT.print(outputBuffer);
 }
 

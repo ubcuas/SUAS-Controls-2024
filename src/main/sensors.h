@@ -42,6 +42,9 @@
 // BATTERY MEASUREMENT
 #define BATTERY_PIN 14
 
+// YAW OFFSET
+#define YAW_OFFSET 180.0
+
 namespace Sensors{
 
 // Define a storage struct for the biases. Include a non-zero header and a simple checksum

@@ -33,7 +33,8 @@ typedef struct{
     double KP;
     double KI;
     double KD;
-}PIDConfig_t ;
+    double PID_ControlRate;
+} PIDConfig_t ;
 
 // Output data settings for each sensor
 typedef struct{
@@ -68,7 +69,7 @@ typedef struct{
     float AcquireRate;
     float SampleTime;
     double GRAVITY;
-     double ACC_X_STD;
+    double ACC_X_STD;
     double ACC_Y_STD;
     double ACC_Z_STD;
     double BARO_ALT_STD;
@@ -77,6 +78,7 @@ typedef struct{
     bool Print_Enable;
     uint16_t BufferSize;
     OutputDataConfig_t OutputData;
+    float HEIGHT_THRESH;
 } ConfigData_t;
 
 class ConfigParser{
