@@ -369,8 +369,8 @@ void ComputePID(){
     target_lat = myData.lat;
   }
   else {
-    target_lon = 0;
-    target_lat = 0;
+    target_lon = 1000.0; // 1000 deg lat or lon doesn't exist (I hope)
+    target_lat = 1000.0;
   }
   //To access kalman filter values for current x,y,&z direction
   MatrixXd X_Zaxis = myKalmanFilter_inst_Z.getState();
@@ -399,11 +399,11 @@ void ComputePID(){
     setpoint = setpoint - 360;
   }
   
-  // Send the data packet to the queue (i.e. activate steering), if detect that parachute has fallen below HEIGHT_THRESH
+  // Send the data packet to the queue (i.e. activate steering), if detect that parachute has fallen below HEIGHT_THRESH (and if it was given a coordinate to go to lol)
   // double height = X_Zaxis(0, 0);
   double height = sensorData_inst.barometerData.Altitude - sensorData_inst.barometerData.AltitudeOffset;
   // Serial.println("\nHeight: " + String(height) + "\n");
-  if (height <= configData_inst.HEIGHT_THRESH && height >= 1.0){
+  if (height <= configData_inst.HEIGHT_THRESH && height >= 1.0 && target_lon != 1000.0 && target_lat != 1000.0){
     // Make the Data packet
     AngleData data = {setpoint, sensorData_inst.imuData.EulerAngles.v2, 0};
     sendSteeringData(data);

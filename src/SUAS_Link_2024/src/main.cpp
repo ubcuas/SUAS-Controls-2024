@@ -81,8 +81,8 @@ void loop() {
 
     // Read drop point and bottle number from Pi (blocking)
     // drop_data = recieveData();
-    drop_data.lon = -123.0734507; // For testing REMOVE LATER!!!!!!!!!!!!!!!!!!!!!!!
-    drop_data.lat = 49.2444132;
+    drop_data.lon = -123.072022; // For testing REMOVE LATER!!!!!!!!!!!!!!!!!!!!!!!
+    drop_data.lat = 49.244365;
     drop_data.heading = 0.0;
     drop_data.bottleID = 2;
 
