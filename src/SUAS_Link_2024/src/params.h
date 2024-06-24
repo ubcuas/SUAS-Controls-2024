@@ -20,7 +20,7 @@ extern HardwareSerial CubeSerial;
 #define M_PER_LAT_DEG 111320.0 // 111320 meters per degree of latitude (short distance approx)
 
 #define AIRCRAFT_SPEED 7.0 // m/s
-#define DRIFT_FACTOR 0.0 // TODO: find this from testing, it's arbitrary rn!!
+#define DRIFT_FACTOR 10.0 // TODO: find this from testing, it's arbitrary rn!!
 #define RELEASE_DELAY 0.0 // s // TODO!!!
 #define RELEASE_MARGIN 6.0 // Tolerance margin from desired drop point that we will trigger release
 

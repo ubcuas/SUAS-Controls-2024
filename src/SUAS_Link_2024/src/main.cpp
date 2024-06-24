@@ -96,7 +96,7 @@ void loop() {
     // Serial.println("Wind: " + String(windspeed) + ", " + String(wind_heading));
     // calc_des_drop_state(windspeed, wind_heading, drop_data, &des_drop_data);
 
-    calc_des_drop_state(0, 0, drop_data, &des_drop_data); // TODO: REMOVE LATER!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+    calc_des_drop_state(1, 0, drop_data, &des_drop_data); // TODO: REMOVE LATER!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
     // Serial.println(latitudeToMeters(des_drop_data.lat)-latitudeToMeters(drop_data.lat));
     // Serial.println(latitudeToMeters(des_drop_data.lon)-latitudeToMeters(drop_data.lon));
     
@@ -106,9 +106,9 @@ void loop() {
     Serial.print("Sent desired drop point to Pi: "); Serial.print(buffer);
 
     // Send message to parachutes (try 3 times; this is time sensitive so nothing we can do if it fails)
-    for (int i = 0; i < 3; i++) {
-        broadcastMessage(des_drop_data);
-    }
+    // for (int i = 0; i < 3; i++) {
+    //     broadcastMessage(des_drop_data);
+    // }
 
     // Wait to get close enough to desired drop point
     digitalWrite(LED_RED, HIGH);
@@ -126,6 +126,17 @@ void loop() {
                 Serial.println("Failsafe mode: Right bottle dropped.");
             } 
             if (msg.servo_output_raw.servo14_raw > 1500) { // If servo 14 is high, then drop the left bottle
+                drop_data.lon = msg.global_position_int.lon / 10000000.0; // For testing REMOVE LATER!!!!!!!!!!!!!!!!!!!!!!!
+                drop_data.lat = msg.global_position_int.lat / 10000000.0;
+                drop_data.heading = 0.0;
+                drop_data.bottleID = 2;
+                snprintf(buffer, sizeof(buffer), "Received data from failsafe activation: %.8f,%.8f,%.2f,%d\n", drop_data.lat, drop_data.lon, drop_data.heading, drop_data.bottleID); Serial.print(buffer);
+                calc_des_drop_state(1, 0, drop_data, &des_drop_data);
+                snprintf(buffer, sizeof(buffer), "Destination: %.8f,%.8f,%.2f,%d\n", des_drop_data.lat, des_drop_data.lon, des_drop_data.heading, des_drop_data.bottleID); Serial.print(buffer);
+                for (int i = 0; i < 3; i++) {
+                    broadcastMessage(des_drop_data);
+                }
+
                 des_drop_data.bottleID = 2; 
                 notDropped = false;
                 Serial.println("Failsafe mode: Left bottle dropped.");

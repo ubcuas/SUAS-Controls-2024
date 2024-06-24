@@ -12,6 +12,7 @@ QueueHandle_t steeringQueue = NULL;
 
 #define SERVO_CONTROL_PERIOD 10 // ms
 volatile int PID_Control_Period = SERVO_CONTROL_PERIOD;
+bool servo_enable = false;
 
 void steering_setup(double acquireRate, double kp, double ki, double kd) {
 
@@ -30,16 +31,6 @@ void steering_setup(double acquireRate, double kp, double ki, double kd) {
   pid.setSampleTime((1.0/acquireRate)*1000); // ms
   PID_Control_Period = (1.0/acquireRate)*1000;
   // pid.setDeadband(DIST_PER_TICK);
-
-  // Initialize servos
-  Serial.println("Initializing servos");
-  servo_1.attach(SERVO_1);
-  servo_1.setPeriodHertz(SERVO_FREQ);
-  servo_2.attach(SERVO_2);
-  servo_2.setPeriodHertz(SERVO_FREQ);
-  // No spin
-  servo_1.write(90);
-  servo_2.write(90);
 
   // Create queue
   steeringQueue = xQueueCreate(1, sizeof(AngleData));  // this queue will take the yaw value
@@ -67,7 +58,19 @@ void steering_setup(double acquireRate, double kp, double ki, double kd) {
   } else {
     Serial.println("Servo control task created");
   }
+}
 
+
+void init_servos() {
+  // Initialize servos
+  Serial.println("Initializing servos");
+  servo_1.attach(SERVO_1);
+  servo_1.setPeriodHertz(SERVO_FREQ);
+  servo_2.attach(SERVO_2);
+  servo_2.setPeriodHertz(SERVO_FREQ);
+  // No spin
+  servo_1.write(90);
+  servo_2.write(90);
 }
 
 
@@ -91,8 +94,12 @@ double angle_diff(double angle1, double angle2) {
 void servo_control(AngleData data) {
 
   if (data.desiredForward == -1){
-    do_nothing();
     return;
+  }
+
+  if (!servo_enable) {
+    servo_enable = true;
+    init_servos();
   }
 
   SteeringData des_lengths;
