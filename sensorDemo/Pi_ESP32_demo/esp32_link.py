@@ -1,6 +1,11 @@
 import serial
 import threading
+
+import uvicorn
+from fastapi import FastAPI
+from pydantic import BaseModel
 from queue import Queue
+
 
 # For USB connection
 # PORT = '/dev/ttyUSB0'
@@ -11,18 +16,25 @@ BAUDRATE = 57600
 esp_serial = serial.Serial(PORT, BAUDRATE)
 
 dropped_bottles = Queue()
+app = FastAPI()
+
+
+class GPS(BaseModel):
+    latitude: float
+    longitude: float
+    heading: float
 
 
 def send_recv_drop_data(lat, lon, heading, bottleID):
-    '''!Sends drop data to ESP32 and receives adjusted drop data
-    
+    """!Sends drop data to ESP32 and receives adjusted drop data
+
     @param lat in degrees
     @param lon in degrees
     @param heading degrees from north
     @param bottleID integer from 1-5
-    
+
     @returns adjusted lat, lon, heading, bottleID
-    '''
+    """
     esp_serial.Timeout = 2 # seconds
     
     data = f"{lat},{lon},{heading},{bottleID}"
@@ -37,25 +49,36 @@ def send_recv_drop_data(lat, lon, heading, bottleID):
         return None
 
 def read_serial():
-    '''!Blocks until reads something from serial
+    """!Blocks until reads something from serial
     Modified dropped_bottles (by appending string indicating bottle that has dropped)
-    '''
+    """
     esp_serial.Timeout = 5*60 # Wait 5 minutes for bottle to be dropped
     confirmation = esp_serial.readline().strip().decode('utf-8')
     dropped_bottles.put(confirmation)
     print([item for item in dropped_bottles.queue])
 
 def monitor_drop_status():
-    '''!Non-blocking function to wait for dropped confirmation message.'''
+    """!Non-blocking function to wait for dropped confirmation message."""
     thread = threading.Thread(target=read_serial)
     thread.daemon = True  # To avoid blocking program exit
     thread.start()
 
 
 # Mock main program
+@app.post("/drop/{bottle_id}")
+async def create_item(bottle_id: int, gps: GPS):
+    lat = gps.latitude
+    lon = gps.longitude
+    heading = gps.heading
 
-adj_drop_data = send_recv_drop_data(40.1, -112.4, 23.4, 2)
-monitor_drop_status()
+    adj_drop_data = send_recv_drop_data(lat, lon, heading, bottle_id)
+    monitor_drop_status()
 
-while True:
-    pass # Do other things (ODLC probably)
+if __name__ == "__main__":
+    uvicorn.run(app, host="0.0.0.0", port=8000)
+#
+# adj_drop_data = send_recv_drop_data(40.1, -112.4, 23.4, 2)
+# monitor_drop_status()
+#
+# while True:
+#     pass # Do other things (ODLC probably)
