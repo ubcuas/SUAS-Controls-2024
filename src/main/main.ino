@@ -389,7 +389,7 @@ void ComputePID(){
   }
 
   // make the Data packet
-  AngleData data = {setpoint, sensorData_inst.imuData.EulerAngles.v2, 0};
+  AngleData data = {setpoint* 0.01745, sensorData_inst.imuData.EulerAngles.v2* 0.01745, 0};
   // send the data packet to the queue
   sendSteeringData(data);
 
