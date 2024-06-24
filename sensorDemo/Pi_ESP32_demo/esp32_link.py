@@ -40,13 +40,13 @@ def send_recv_drop_data(lat, lon, heading, bottleID):
     data = f"{lat},{lon},{heading},{bottleID}"
     esp_serial.write(data.encode('utf-8'))
 
-    try:
-        adj_drop_data = esp_serial.readline().decode('utf-8').strip().split(",")
-        print(adj_drop_data)
-        return adj_drop_data
-    except Exception as e: # Timeout probably
-        print(e)
-        return None
+    # try:
+    #     adj_drop_data = esp_serial.readline().decode('utf-8').strip().split(",")
+    #     print(adj_drop_data)
+    #     return adj_drop_data
+    # except Exception as e: # Timeout probably
+    #     print(e)
+    #     return None
 
 def read_serial():
     """!Blocks until reads something from serial
@@ -72,7 +72,6 @@ async def create_item(bottle_id: int, gps: GPS):
     heading = gps.heading
 
     adj_drop_data = send_recv_drop_data(lat, lon, heading, bottle_id)
-    monitor_drop_status()
 
 if __name__ == "__main__":
     uvicorn.run(app, host="0.0.0.0", port=8000)
