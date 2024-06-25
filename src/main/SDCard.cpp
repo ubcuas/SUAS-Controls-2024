@@ -90,9 +90,21 @@ namespace SDCard
             }
         }
 
-        // create a new base file
+        // Check if directory exists
+        if (!SD.exists(LOG_DIR)) {
+            // Create directory if it does not exist
+            if (SD.mkdir(LOG_DIR)) {
+                Serial.println("Directory created");
+            } else {
+                Serial.println("Failed to create directory");
+                SDStatus = SDCARD_ERROR;
+                return SDCARD_ERROR;
+            }
+        }
+
+        // Create a new base file
         File file = SD.open((String(LOG_DIR) + "/" + String(LOG_FILE_BASE) + String(LOG_FILE_EXT)), FILE_WRITE);
-        if(!file){
+        if (!file) {
             Serial.println("Failed to create new file");
             SDStatus = SDCARD_ERROR;
             return SDCARD_ERROR;
