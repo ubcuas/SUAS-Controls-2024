@@ -87,8 +87,10 @@ void loop() {
     // Read drop point and bottle number from Pi (blocking)
     // drop_data = recieveData();
 
-    drop_data.lon = -76.5207332; // For testing REMOVE LATER!!!!!!!!!!!!!!!!!!!!!!!
-    drop_data.lat = 38.3022803;
+    // drop_data.lon = -76.5207332; // For testing REMOVE LATER!!!!!!!!!!!!!!!!!!!!!!!
+    // drop_data.lat = 38.3022803;
+    drop_data.lon = -76.5494557; // For testing REMOVE LATER!!!!!!!!!!!!!!!!!!!!!!! , 
+    drop_data.lat = 38.3140069;
     drop_data.heading = 0.0;
     drop_data.bottleID = 4;
 
@@ -115,6 +117,17 @@ void loop() {
     for (int i = 0; i < 3; i++) {
         broadcastMessage(des_drop_data);
     }
+
+    // REMOVE LATER!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+    des_drop_data.bottleID = 2;
+    for (int i = 0; i < 3; i++) {
+        broadcastMessage(des_drop_data);
+    }
+    des_drop_data.bottleID = 3;
+    for (int i = 0; i < 3; i++) {
+        broadcastMessage(des_drop_data);
+    }
+
 
     // Wait to get close enough to desired drop point
     digitalWrite(LED_RED, HIGH);

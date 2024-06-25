@@ -400,37 +400,37 @@ void ComputePID(){
   }
   
   // Send the data packet to the queue (i.e. activate steering), if detect that parachute has fallen below HEIGHT_THRESH (and if it was given a coordinate to go to lol)
-  // double height = X_Zaxis(0, 0);
-  double height = sensorData_inst.barometerData.Altitude - sensorData_inst.barometerData.AltitudeOffset;
-  Serial.println("\nHeight: " + String(height) + "\n");
-  if (height <= configData_inst.HEIGHT_THRESH && height >= 1.0 && target_lon != 1000.0 && target_lat != 1000.0){
+  double height = X_Zaxis(0, 0);
+  // double height = sensorData_inst.barometerData.Altitude - sensorData_inst.barometerData.AltitudeOffset;
+  // Serial.println("\nHeight: " + String(height) + "\n");
+  if (height <= configData_inst.HEIGHT_THRESH && height >= 0.5 && target_lon != 1000.0 && target_lat != 1000.0){
     // Make the Data packet
     // Serial.printf("Height matched if condition. Value: %lf\n", height);
     AngleData data = {setpoint, sensorData_inst.imuData.EulerAngles.v2, 0};
     sendSteeringData(data);
   }
   else {
-    count_1 = 0; // Keep resetting encoders to zero until steering activated
-    count_2 = 0;
+    // count_1 = 0; // Keep resetting encoders to zero until steering activated
+    // count_2 = 0;
     AngleData data = {0, 0, -1}; // I'm using the desiredForward as a flag to turn off the servos (-1 = off)
     sendSteeringData(data);
   }
 
   double distance = GPS.distanceBetween(lon_now, lat_now, target_lon, target_lat);
   
-  // //Print to terminal
-  // snprintf(outputBuffer, BufferLen, "Yaw: %.3lf\nSetpoint: %.3lf\nDistance: %.3lf\nlattitude: %.6lf\nlongitude: %.6lf\nlat_now: %.6lf\nlon_now: %.6lf\n,x: %.6lf\ny: %.6lf\nz: %.6lf\n", 
-  // sensorData_inst.imuData.EulerAngles.v2, 
-  // setpoint, 
-  // distance,
-  // sensorData_inst.gpsData.Latitude,
-  // sensorData_inst.gpsData.Longitude,
-  // lat_now,
-  // lon_now,
-  // X_Xaxis(0,0),
-  // X_Yaxis(0,0),
-  // X_Zaxis(0,0)
-  // );
-  // SERIAL_PORT.print(outputBuffer);
+  //Print to terminal
+  snprintf(outputBuffer, BufferLen, "Yaw: %.3lf\nSetpoint: %.3lf\nDistance: %.3lf\nlattitude: %.6lf\nlongitude: %.6lf\nlat_now: %.6lf\nlon_now: %.6lf\n,x: %.6lf\ny: %.6lf\nz: %.6lf\n", 
+  sensorData_inst.imuData.EulerAngles.v2, 
+  setpoint, 
+  distance,
+  sensorData_inst.gpsData.Latitude,
+  sensorData_inst.gpsData.Longitude,
+  lat_now,
+  lon_now,
+  X_Xaxis(0,0),
+  X_Yaxis(0,0),
+  X_Zaxis(0,0)
+  );
+  SERIAL_PORT.print(outputBuffer);
 }
 

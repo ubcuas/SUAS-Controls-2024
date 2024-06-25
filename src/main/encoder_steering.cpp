@@ -125,7 +125,7 @@ void servo_control(AngleData data) {
     des_lengths.l2 = output;
   }
 
-  Serial.printf("Lengths: %lf %lf\n", des_lengths.l1, des_lengths.l2);    //- -- Comment me when testing is done
+  // Serial.printf("Lengths: %lf %lf\n", des_lengths.l1, des_lengths.l2);    //- -- Comment me when testing is done
 
   // Servo 1
   if (des_lengths.l1 - current_lengths.l1 > (DIST_PER_TICK)) {
