@@ -93,7 +93,14 @@ double angle_diff(double angle1, double angle2) {
  */
 void servo_control(AngleData data) {
 
-  if (data.desiredForward == -1){
+  // Serial,printf("Data Packet: %lf \t %lf \t %lf\n", data.currentYaw, data.desiredForward, data.desiredYaw);
+
+  if (data.desiredForward == -1.0){
+    if (servo_enable) {
+      servo_1.detach();
+      servo_2.detach();
+      servo_enable = false;
+    }
     return;
   }
 
@@ -152,13 +159,13 @@ void servoControlTask(void *pvParameters) {
     // initialize the incoming data
     incomingData.desiredYaw = 0;
     incomingData.currentYaw = 0;
-    incomingData.desiredForward = 0;
+    incomingData.desiredForward = -1.0;
 
     while (true) {
         // Check if we have incoming data
         if (xQueueReceive(steeringQueue, &incomingData, 0) == pdTRUE) {
             // Successfully received data
-            Serial.printf("Desired yaw: %lf, Current yaw: %lf, Desired forward: %lf\n", incomingData.desiredYaw, incomingData.currentYaw, incomingData.desiredForward);
+            // Serial.printf("Desired yaw: %lf, Current yaw: %lf, Desired forward: %lf\n", incomingData.desiredYaw, incomingData.currentYaw, incomingData.desiredForward);
         }
         // Call servo_control function here
         servo_control(incomingData); // Modify parameters as needed

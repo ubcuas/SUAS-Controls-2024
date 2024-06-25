@@ -26,7 +26,7 @@ typedef struct{
 
 class gpsLowLevel {
 public:
-    gpsLowLevel(HardwareSerial *gpsSerial = &Serial2, uint32_t GPSBaudRate = 115200, uint8_t GPSRate = 5, uint8_t RXPin = 2, uint8_t TXPin = 4);
+    gpsLowLevel(HardwareSerial *gpsSerial = &Serial2, uint32_t GPSBaudRate = 115200, uint8_t GPSRate = 5, uint8_t RXPin = 4, uint8_t TXPin = 2);
     
     enum GPS_Status {
         GPS_OK,

@@ -402,9 +402,10 @@ void ComputePID(){
   // Send the data packet to the queue (i.e. activate steering), if detect that parachute has fallen below HEIGHT_THRESH (and if it was given a coordinate to go to lol)
   // double height = X_Zaxis(0, 0);
   double height = sensorData_inst.barometerData.Altitude - sensorData_inst.barometerData.AltitudeOffset;
-  // Serial.println("\nHeight: " + String(height) + "\n");
+  Serial.println("\nHeight: " + String(height) + "\n");
   if (height <= configData_inst.HEIGHT_THRESH && height >= 1.0 && target_lon != 1000.0 && target_lat != 1000.0){
     // Make the Data packet
+    // Serial.printf("Height matched if condition. Value: %lf\n", height);
     AngleData data = {setpoint, sensorData_inst.imuData.EulerAngles.v2, 0};
     sendSteeringData(data);
   }

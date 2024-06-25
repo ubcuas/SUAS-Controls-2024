@@ -37,7 +37,7 @@
 #define GPSBAUDRATE 115200
 #define GPS_RX 4
 #define GPS_TX 2
-#define GPS_RATE 5
+#define GPS_RATE 10
 
 // BATTERY MEASUREMENT
 #define BATTERY_PIN 14
