@@ -27,7 +27,8 @@ bool InitESPNow(uint8_t Bottle_id) {
 
 // Callback function that will be executed when data is received
 void OnDataRecv(const uint8_t * mac, const uint8_t *incomingData, int len) {
-  memcpy(&myData, (datapacket*)incomingData, sizeof(myData));
+  datapacket temp_storage;
+  memcpy(&temp_storage, (datapacket*)incomingData, sizeof(temp_storage));
   Serial.print("Bytes received: ");
   Serial.println(len);
   Serial.print("lat: ");
@@ -41,8 +42,9 @@ void OnDataRecv(const uint8_t * mac, const uint8_t *incomingData, int len) {
   Serial.println();
 
   // Send a response
-  if (myData.bottleID == Bottle_ID){
+  if (temp_storage.bottleID == Bottle_ID){
     response.bottleID = Bottle_ID;
+    memcpy(&myData, (datapacket*)incomingData, sizeof(myData));
     esp_err_t result = esp_now_send(mac, (uint8_t *) &response, sizeof(response));
     if (result == ESP_OK) {
       Serial.println("Response sent");

@@ -369,6 +369,7 @@ void ComputePID(){
   if (myData.bottleID == configData_inst.BottleID){
     target_lon = myData.lon;
     target_lat = myData.lat;
+    printf("Target received.\n");
   }
   else {
     target_lon = 1000.0; // 1000 deg lat or lon doesn't exist (I hope)

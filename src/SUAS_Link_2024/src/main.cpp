@@ -89,10 +89,12 @@ void loop() {
 
     // drop_data.lon = -76.5207332; // For testing REMOVE LATER!!!!!!!!!!!!!!!!!!!!!!!
     // drop_data.lat = 38.3022803;
-    drop_data.lon = -76.5494557; // For testing REMOVE LATER!!!!!!!!!!!!!!!!!!!!!!! , 
-    drop_data.lat = 38.3140069;
+    // drop_data.lon = -76.5494557; // For testing REMOVE LATER!!!!!!!!!!!!!!!!!!!!!!! , 
+    // drop_data.lat = 38.3140069;
+    drop_data.lon = -76.5216808; // For testing REMOVE LATER!!!!!!!!!!!!!!!!!!!!!!! , 
+    drop_data.lat = 38.3012800;
     drop_data.heading = 0.0;
-    drop_data.bottleID = 4;
+    drop_data.bottleID = 2;
 
     bool notDropped = true;
     snprintf(buffer, sizeof(buffer), "Received data from Pi: %.8f,%.8f,%.2f,%d\n", drop_data.lat, drop_data.lon, drop_data.heading, drop_data.bottleID); Serial.print(buffer);
@@ -116,18 +118,37 @@ void loop() {
     // Send message to parachutes (try 3 times; this is time sensitive so nothing we can do if it fails)
     for (int i = 0; i < 3; i++) {
         broadcastMessage(des_drop_data);
+        delay(500);
     }
 
     // REMOVE LATER!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-    des_drop_data.bottleID = 2;
-    for (int i = 0; i < 3; i++) {
-        broadcastMessage(des_drop_data);
-    }
     des_drop_data.bottleID = 3;
     for (int i = 0; i < 3; i++) {
         broadcastMessage(des_drop_data);
+        delay(500);
+    }
+    des_drop_data.bottleID = 4;
+    for (int i = 0; i < 3; i++) {
+        broadcastMessage(des_drop_data);
+        delay(500);
     }
 
+    // struct_message drop_data_2;
+    // drop_data_2.lon = test_lon; // For testing REMOVE LATER!!!!!!!!!!!!!!!!!!!!!!! , 
+    // drop_data_2.lat = test_lat;
+    // drop_data_2.heading = 0.0;
+    // drop_data_2.bottleID = 3;
+    // for (int i = 0; i < 3; i++) {
+    //     broadcastMessage(drop_data_2);
+    // }
+    // struct_message drop_data_4;
+    // drop_data_4.lon = test_lon; // For testing REMOVE LATER!!!!!!!!!!!!!!!!!!!!!!! , 
+    // drop_data_4.lat = test_lat;
+    // drop_data_4.heading = 0.0;
+    // drop_data_4.bottleID = 4;
+    // for (int i = 0; i < 3; i++) {
+    //     broadcastMessage(drop_data_4);
+    // }
 
     // Wait to get close enough to desired drop point
     digitalWrite(LED_RED, HIGH);
