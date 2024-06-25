@@ -70,6 +70,7 @@ typedef struct{
     Vector EulerAngles;
     biasStore IMUDmpBias;
     bool imuBiasFoundinEEPROM;
+    float IMU_HeadOffset;
 } imuData_t;
 
 typedef struct{

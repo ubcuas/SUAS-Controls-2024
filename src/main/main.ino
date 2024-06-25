@@ -70,14 +70,14 @@ void setup()
   // Print the configuration data
   configParser_inst.printConfigData(&configData_inst);
 
+  // Initialize the WebStreamServer
+  webStreamServer_inst.init((const char *)configData_inst.SSID, (const char *)configData_inst.Password);
+  webStreamServer_inst.setCustomFunction([&]() { mySensor_inst.resetGPSReference(); });
+
   // Set up ESP-NOW communication
   if(InitESPNow(configData_inst.BottleID) == false){
     SERIAL_PORT.println("ESP-NOW init failed");
   }
-
-  // Initialize the WebStreamServer
-  webStreamServer_inst.init((const char *)configData_inst.SSID, (const char *)configData_inst.Password);
-  webStreamServer_inst.setCustomFunction([&]() { mySensor_inst.resetGPSReference(); });
 
   // Initialize the Sensors
   if(mySensor_inst.init() != Sensors::SENSORS_OK){
@@ -103,6 +103,8 @@ void setup()
   //Steering setup
   steering_setup(configData_inst.AcquireRate, configData_inst.PID.KP, configData_inst.PID.KI, configData_inst.PID.KD);
 
+  // set imu head offset
+  sensorData_inst.imuData.IMU_HeadOffset = configData_inst.IMU_HeadOffset;
   delay(1000);
   timeStart = millis();
 }

@@ -364,7 +364,7 @@ SENSORS_Status_t sensors::readIMUData(){
               double yaw = -1 * atan2(t3, t4) * 180.0 / PI;
 
               // Add 180 degrees offset to yaw
-              yaw += YAW_OFFSET;
+              yaw += sensorData.imuData.IMU_HeadOffset;//YAW_OFFSET;
               if (yaw > 180.0) {
                 yaw -= 360.0;
               }
