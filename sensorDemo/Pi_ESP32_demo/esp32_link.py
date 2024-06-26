@@ -8,10 +8,10 @@ from queue import Queue
 
 
 # For USB connection
-# PORT = '/dev/ttyUSB0'
+PORT = '/dev/ttyUSB0'
 # For direct pin connection
 # PORT = '/dev/ttyS0'
-PORT = '/dev/ttyAMA0'
+# PORT = '/dev/ttyAMA0'
 BAUDRATE = 57600
 esp_serial = serial.Serial(PORT, BAUDRATE)
 
