@@ -26,7 +26,7 @@ extern HardwareSerial CubeSerial;
 
 #define WINDOW_SIZE 10
 
-#define FAILSAFE_MODE true
+#define FAILSAFE_MODE false
 
 // MAC Address of responder - edit as required
 static const uint8_t ADDRESS_1[] = {0xD8, 0xBC, 0x38, 0xE4, 0x9E, 0x5C}; // Parachute #1
