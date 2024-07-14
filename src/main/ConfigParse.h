@@ -74,6 +74,7 @@ typedef struct{
     double ACC_Z_STD;
     double BARO_ALT_STD;
     double GPS_POS_STD;
+    double IMU_HeadOffset;
     PIDConfig_t PID;
     bool Print_Enable;
     uint16_t BufferSize;

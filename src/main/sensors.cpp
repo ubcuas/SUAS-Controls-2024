@@ -183,30 +183,30 @@ SENSORS_Status_t sensors::initIMU(){
       SERIAL_PORT.println(F("EEPROM.begin failed! Bias Save and Restore not possible"));
     }
     EEPROM.get(0, sensorData.imuData.IMUDmpBias); //read the bias if stored
-    if(isBiasStoreValid(&sensorData.imuData.IMUDmpBias)){
-      SERIAL_PORT.println(F("Bias data in EEPROM is valid. Restoring it..."));
-      success &= (imu.setBiasGyroX(sensorData.imuData.IMUDmpBias.biasGyroX) == ICM_20948_Stat_Ok);
-      success &= (imu.setBiasGyroY(sensorData.imuData.IMUDmpBias.biasGyroY) == ICM_20948_Stat_Ok);
-      success &= (imu.setBiasGyroZ(sensorData.imuData.IMUDmpBias.biasGyroZ) == ICM_20948_Stat_Ok);
-      success &= (imu.setBiasAccelX(sensorData.imuData.IMUDmpBias.biasAccelX) == ICM_20948_Stat_Ok);
-      success &= (imu.setBiasAccelY(sensorData.imuData.IMUDmpBias.biasAccelY) == ICM_20948_Stat_Ok);
-      success &= (imu.setBiasAccelZ(sensorData.imuData.IMUDmpBias.biasAccelZ) == ICM_20948_Stat_Ok);
-      success &= (imu.setBiasCPassX(sensorData.imuData.IMUDmpBias.biasCPassX) == ICM_20948_Stat_Ok);
-      success &= (imu.setBiasCPassY(sensorData.imuData.IMUDmpBias.biasCPassY) == ICM_20948_Stat_Ok);
-      success &= (imu.setBiasCPassZ(sensorData.imuData.IMUDmpBias.biasCPassZ) == ICM_20948_Stat_Ok);
-      if (success)
-      {
-        SERIAL_PORT.println(F("Biases restored."));
-        printBiases(&sensorData.imuData.IMUDmpBias);
-        sensorData.imuData.imuBiasFoundinEEPROM = true;
-        delay(2000);
-      }
-      else{
-        SERIAL_PORT.println(F("Bias restore failed!"));
-        sensorData.imuData.imuBiasFoundinEEPROM = false;
-        delay(2000);
-      }
-    }
+    // if(isBiasStoreValid(&sensorData.imuData.IMUDmpBias)){
+    //   SERIAL_PORT.println(F("Bias data in EEPROM is valid. Restoring it..."));
+    //   success &= (imu.setBiasGyroX(sensorData.imuData.IMUDmpBias.biasGyroX) == ICM_20948_Stat_Ok);
+    //   success &= (imu.setBiasGyroY(sensorData.imuData.IMUDmpBias.biasGyroY) == ICM_20948_Stat_Ok);
+    //   success &= (imu.setBiasGyroZ(sensorData.imuData.IMUDmpBias.biasGyroZ) == ICM_20948_Stat_Ok);
+    //   success &= (imu.setBiasAccelX(sensorData.imuData.IMUDmpBias.biasAccelX) == ICM_20948_Stat_Ok);
+    //   success &= (imu.setBiasAccelY(sensorData.imuData.IMUDmpBias.biasAccelY) == ICM_20948_Stat_Ok);
+    //   success &= (imu.setBiasAccelZ(sensorData.imuData.IMUDmpBias.biasAccelZ) == ICM_20948_Stat_Ok);
+    //   success &= (imu.setBiasCPassX(sensorData.imuData.IMUDmpBias.biasCPassX) == ICM_20948_Stat_Ok);
+    //   success &= (imu.setBiasCPassY(sensorData.imuData.IMUDmpBias.biasCPassY) == ICM_20948_Stat_Ok);
+    //   success &= (imu.setBiasCPassZ(sensorData.imuData.IMUDmpBias.biasCPassZ) == ICM_20948_Stat_Ok);
+    //   if (success)
+    //   {
+    //     SERIAL_PORT.println(F("Biases restored."));
+    //     printBiases(&sensorData.imuData.IMUDmpBias);
+    //     sensorData.imuData.imuBiasFoundinEEPROM = true;
+    //     delay(2000);
+    //   }
+    //   else{
+    //     SERIAL_PORT.println(F("Bias restore failed!"));
+    //     sensorData.imuData.imuBiasFoundinEEPROM = false;
+    //     delay(2000);
+    //   }
+    // }
     SERIAL_PORT.println("IMU init successful");
     return status;
 }
@@ -364,7 +364,7 @@ SENSORS_Status_t sensors::readIMUData(){
               double yaw = -1 * atan2(t3, t4) * 180.0 / PI;
 
               // Add 180 degrees offset to yaw
-              yaw += YAW_OFFSET;
+              yaw += sensorData.imuData.IMU_HeadOffset;//YAW_OFFSET;
               if (yaw > 180.0) {
                 yaw -= 360.0;
               }

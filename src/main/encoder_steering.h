@@ -39,6 +39,9 @@ extern double current_heading;
 extern volatile bool forward_1;
 extern volatile bool forward_2;
 
+extern bool servo_enable;
+
+void init_servos();
 void steering_setup(double acquireRate, double kp, double ki, double kd);
 double angle_diff(double angle1, double angle2);
 void  servo_control(AngleData data);

@@ -31,6 +31,9 @@ void ConfigParser::createDefaultConfigFile(fs::SDFS fs){
     PID["KD"] = 0.0;
     PID["PID_ControlRate"] = 100.0;
 
+    //IMU Parameters
+    doc["IMU_HeadOffset"] = 180.0;
+
     // Print enable
     doc["Print_Enable"] = true;
     doc["BufferSize"] = 512;
@@ -137,6 +140,9 @@ ConfigParseStatus ConfigParser::parseConfigFile(fs::SDFS fs, ConfigData_t *confi
     configData->PID.KD = doc["PID"]["KD"];
     configData->PID.PID_ControlRate = doc["PID"]["PID_ControlRate"];
 
+    //IMU Parameters
+     configData->IMU_HeadOffset = doc["IMU_HeadOffset"];
+
     //Printing Parameters
     configData->Print_Enable = doc["Print_Enable"];
     configData->BufferSize = doc["BufferSize"];
@@ -185,6 +191,7 @@ void ConfigParser::getConfigNoSD(ConfigData_t *ConfigData){
     ConfigData->PID.KI = 0.0;
     ConfigData->PID.KD = 0.0;
     ConfigData->PID.PID_ControlRate = 100.0;
+    ConfigData->IMU_HeadOffset = 180.0;
     
     ConfigData->Print_Enable = true;
     ConfigData->BufferSize = 512;
@@ -228,6 +235,8 @@ void ConfigParser::printConfigData(ConfigData_t *configData){
     Serial.printf("PID KI: %f\n", configData->PID.KI);
     Serial.printf("PID KD: %f\n", configData->PID.KD);
     Serial.printf("PID Control Rate: %f\n", configData->PID.PID_ControlRate);
+
+    Serial.printf("IMU Head Offset: %lf(deg)\n", configData->IMU_HeadOffset);
     
     Serial.printf("Print Enable: %d\n", configData->Print_Enable);
     Serial.printf("Buffer Size: %d\n", configData->BufferSize);

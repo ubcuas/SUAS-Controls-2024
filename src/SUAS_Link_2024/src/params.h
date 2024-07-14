@@ -19,20 +19,20 @@ extern HardwareSerial CubeSerial;
 
 #define M_PER_LAT_DEG 111320.0 // 111320 meters per degree of latitude (short distance approx)
 
-#define AIRCRAFT_SPEED 7.0 // m/s
-#define DRIFT_FACTOR 0.0 // TODO: find this from testing, it's arbitrary rn!!
+#define AIRCRAFT_SPEED 12.0 // m/s
+#define DRIFT_FACTOR 1.0 // TODO: find this from testing, it's arbitrary rn!!
 #define RELEASE_DELAY 0.0 // s // TODO!!!
-#define RELEASE_MARGIN 6.0 // Tolerance margin from desired drop point that we will trigger release
+#define RELEASE_MARGIN 5.0 // Tolerance margin from desired drop point that we will trigger release
 
 #define WINDOW_SIZE 10
 
-#define FAILSAFE_MODE true
+#define FAILSAFE_MODE false
 
 // MAC Address of responder - edit as required
 static const uint8_t ADDRESS_1[] = {0xD8, 0xBC, 0x38, 0xE4, 0x9E, 0x5C}; // Parachute #1
 static const uint8_t ADDRESS_2[] = {0x94, 0xE6, 0x86, 0x92, 0xA7, 0xFC}; // Parachute #2
-// static const uint8_t ADDRESS_3[] = {0x, 0x, 0x, 0x, 0x, 0x};
-// static const uint8_t ADDRESS_4[] = {0x, 0x, 0x, 0x, 0x, 0x};
-// static const uint8_t ADDRESS_5[] = {0x, 0x, 0x, 0x, 0x, 0x};
+static const uint8_t ADDRESS_3[] = {0x94, 0xE6, 0x86, 0x92, 0xA7, 0xE4}; // Parachute #3
+static const uint8_t ADDRESS_4[] = {0x94, 0xE6, 0x86, 0x92, 0xA8, 0xCC}; // Parachute #4
+// static const uint8_t ADDRESS_ALL[] = {0xff, 0xff, 0xff, 0xff, 0xff, 0xff};
 
 #endif

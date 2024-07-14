@@ -70,14 +70,14 @@ void setup()
   // Print the configuration data
   configParser_inst.printConfigData(&configData_inst);
 
+  // Initialize the WebStreamServer
+  webStreamServer_inst.init((const char *)configData_inst.SSID, (const char *)configData_inst.Password);
+  webStreamServer_inst.setCustomFunction([&]() { mySensor_inst.resetGPSReference(); });
+
   // Set up ESP-NOW communication
   if(InitESPNow(configData_inst.BottleID) == false){
     SERIAL_PORT.println("ESP-NOW init failed");
   }
-
-  // Initialize the WebStreamServer
-  webStreamServer_inst.init((const char *)configData_inst.SSID, (const char *)configData_inst.Password);
-  webStreamServer_inst.setCustomFunction([&]() { mySensor_inst.resetGPSReference(); });
 
   // Initialize the Sensors
   if(mySensor_inst.init() != Sensors::SENSORS_OK){
@@ -103,6 +103,8 @@ void setup()
   //Steering setup
   steering_setup(configData_inst.AcquireRate, configData_inst.PID.KP, configData_inst.PID.KI, configData_inst.PID.KD);
 
+  // set imu head offset
+  sensorData_inst.imuData.IMU_HeadOffset = configData_inst.IMU_HeadOffset;
   delay(1000);
   timeStart = millis();
 }
@@ -367,10 +369,11 @@ void ComputePID(){
   if (myData.bottleID == configData_inst.BottleID){
     target_lon = myData.lon;
     target_lat = myData.lat;
+    printf("Target received.\n");
   }
   else {
-    target_lon = 0;
-    target_lat = 0;
+    target_lon = 1000.0; // 1000 deg lat or lon doesn't exist (I hope)
+    target_lat = 1000.0;
   }
   //To access kalman filter values for current x,y,&z direction
   MatrixXd X_Zaxis = myKalmanFilter_inst_Z.getState();
@@ -399,37 +402,38 @@ void ComputePID(){
     setpoint = setpoint - 360;
   }
   
-  // Send the data packet to the queue (i.e. activate steering), if detect that parachute has fallen below HEIGHT_THRESH
-  // double height = X_Zaxis(0, 0);
-  double height = sensorData_inst.barometerData.Altitude - sensorData_inst.barometerData.AltitudeOffset;
+  // Send the data packet to the queue (i.e. activate steering), if detect that parachute has fallen below HEIGHT_THRESH (and if it was given a coordinate to go to lol)
+  double height = X_Zaxis(0, 0);
+  // double height = sensorData_inst.barometerData.Altitude - sensorData_inst.barometerData.AltitudeOffset;
   // Serial.println("\nHeight: " + String(height) + "\n");
-  if (height <= configData_inst.HEIGHT_THRESH && height >= 1.0){
+  if (height <= configData_inst.HEIGHT_THRESH && height >= 0.5 && target_lon != 1000.0 && target_lat != 1000.0){
     // Make the Data packet
+    // Serial.printf("Height matched if condition. Value: %lf\n", height);
     AngleData data = {setpoint, sensorData_inst.imuData.EulerAngles.v2, 0};
     sendSteeringData(data);
   }
   else {
-    count_1 = 0; // Keep resetting encoders to zero until steering activated
-    count_2 = 0;
+    // count_1 = 0; // Keep resetting encoders to zero until steering activated
+    // count_2 = 0;
     AngleData data = {0, 0, -1}; // I'm using the desiredForward as a flag to turn off the servos (-1 = off)
     sendSteeringData(data);
   }
 
   double distance = GPS.distanceBetween(lon_now, lat_now, target_lon, target_lat);
   
-  // //Print to terminal
-  // snprintf(outputBuffer, BufferLen, "Yaw: %.3lf\nSetpoint: %.3lf\nDistance: %.3lf\nlattitude: %.6lf\nlongitude: %.6lf\nlat_now: %.6lf\nlon_now: %.6lf\n,x: %.6lf\ny: %.6lf\nz: %.6lf\n", 
-  // sensorData_inst.imuData.EulerAngles.v2, 
-  // setpoint, 
-  // distance,
-  // sensorData_inst.gpsData.Latitude,
-  // sensorData_inst.gpsData.Longitude,
-  // lat_now,
-  // lon_now,
-  // X_Xaxis(0,0),
-  // X_Yaxis(0,0),
-  // X_Zaxis(0,0)
-  // );
-  // SERIAL_PORT.print(outputBuffer);
+  //Print to terminal
+  snprintf(outputBuffer, BufferLen, "Yaw: %.3lf\nSetpoint: %.3lf\nDistance: %.3lf\nlattitude: %.6lf\nlongitude: %.6lf\nlat_now: %.6lf\nlon_now: %.6lf\n,x: %.6lf\ny: %.6lf\nz: %.6lf\n", 
+  sensorData_inst.imuData.EulerAngles.v2, 
+  setpoint, 
+  distance,
+  sensorData_inst.gpsData.Latitude,
+  sensorData_inst.gpsData.Longitude,
+  lat_now,
+  lon_now,
+  X_Xaxis(0,0),
+  X_Yaxis(0,0),
+  X_Zaxis(0,0)
+  );
+  SERIAL_PORT.print(outputBuffer);
 }
 

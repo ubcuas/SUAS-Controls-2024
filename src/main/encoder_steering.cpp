@@ -12,6 +12,7 @@ QueueHandle_t steeringQueue = NULL;
 
 #define SERVO_CONTROL_PERIOD 10 // ms
 volatile int PID_Control_Period = SERVO_CONTROL_PERIOD;
+bool servo_enable = false;
 
 void steering_setup(double acquireRate, double kp, double ki, double kd) {
 
@@ -30,16 +31,6 @@ void steering_setup(double acquireRate, double kp, double ki, double kd) {
   pid.setSampleTime((1.0/acquireRate)*1000); // ms
   PID_Control_Period = (1.0/acquireRate)*1000;
   // pid.setDeadband(DIST_PER_TICK);
-
-  // Initialize servos
-  Serial.println("Initializing servos");
-  servo_1.attach(SERVO_1);
-  servo_1.setPeriodHertz(SERVO_FREQ);
-  servo_2.attach(SERVO_2);
-  servo_2.setPeriodHertz(SERVO_FREQ);
-  // No spin
-  servo_1.write(90);
-  servo_2.write(90);
 
   // Create queue
   steeringQueue = xQueueCreate(1, sizeof(AngleData));  // this queue will take the yaw value
@@ -67,7 +58,19 @@ void steering_setup(double acquireRate, double kp, double ki, double kd) {
   } else {
     Serial.println("Servo control task created");
   }
+}
 
+
+void init_servos() {
+  // Initialize servos
+  Serial.println("Initializing servos");
+  servo_1.attach(SERVO_1);
+  servo_1.setPeriodHertz(SERVO_FREQ);
+  servo_2.attach(SERVO_2);
+  servo_2.setPeriodHertz(SERVO_FREQ);
+  // No spin
+  servo_1.write(90);
+  servo_2.write(90);
 }
 
 
@@ -90,9 +93,20 @@ double angle_diff(double angle1, double angle2) {
  */
 void servo_control(AngleData data) {
 
-  if (data.desiredForward == -1){
-    do_nothing();
+  // Serial,printf("Data Packet: %lf \t %lf \t %lf\n", data.currentYaw, data.desiredForward, data.desiredYaw);
+
+  if (data.desiredForward == -1.0){
+    if (servo_enable) {
+      servo_1.detach();
+      servo_2.detach();
+      servo_enable = false;
+    }
     return;
+  }
+
+  if (!servo_enable) {
+    servo_enable = true;
+    init_servos();
   }
 
   SteeringData des_lengths;
@@ -111,7 +125,7 @@ void servo_control(AngleData data) {
     des_lengths.l2 = output;
   }
 
-  Serial.printf("Lengths: %lf %lf\n", des_lengths.l1, des_lengths.l2);    //- -- Comment me when testing is done
+  // Serial.printf("Lengths: %lf %lf\n", des_lengths.l1, des_lengths.l2);    //- -- Comment me when testing is done
 
   // Servo 1
   if (des_lengths.l1 - current_lengths.l1 > (DIST_PER_TICK)) {
@@ -145,13 +159,13 @@ void servoControlTask(void *pvParameters) {
     // initialize the incoming data
     incomingData.desiredYaw = 0;
     incomingData.currentYaw = 0;
-    incomingData.desiredForward = 0;
+    incomingData.desiredForward = -1.0;
 
     while (true) {
         // Check if we have incoming data
         if (xQueueReceive(steeringQueue, &incomingData, 0) == pdTRUE) {
             // Successfully received data
-            Serial.printf("Desired yaw: %lf, Current yaw: %lf, Desired forward: %lf\n", incomingData.desiredYaw, incomingData.currentYaw, incomingData.desiredForward);
+            // Serial.printf("Desired yaw: %lf, Current yaw: %lf, Desired forward: %lf\n", incomingData.desiredYaw, incomingData.currentYaw, incomingData.desiredForward);
         }
         // Call servo_control function here
         servo_control(incomingData); // Modify parameters as needed

@@ -52,7 +52,12 @@ void setup() {
     peerInfo.encrypt = false;
     // Register parachute boards
     memcpy(peerInfo.peer_addr, ADDRESS_1, 6);
+    if (esp_now_add_peer(&peerInfo) != ESP_OK) { Serial.println("Failed to add peer"); }
     memcpy(peerInfo.peer_addr, ADDRESS_2, 6);
+    if (esp_now_add_peer(&peerInfo) != ESP_OK) { Serial.println("Failed to add peer"); }
+    memcpy(peerInfo.peer_addr, ADDRESS_3, 6);
+    if (esp_now_add_peer(&peerInfo) != ESP_OK) { Serial.println("Failed to add peer"); }
+    memcpy(peerInfo.peer_addr, ADDRESS_4, 6);
     if (esp_now_add_peer(&peerInfo) != ESP_OK) { Serial.println("Failed to add peer"); }
     
     digitalWrite(LED_RED, LOW); // Red LED off indicates comminucation established
@@ -80,11 +85,7 @@ char buffer[100]; // For printing things
 void loop() {
 
     // Read drop point and bottle number from Pi (blocking)
-    // drop_data = recieveData();
-    drop_data.lon = -123.0734507; // For testing REMOVE LATER!!!!!!!!!!!!!!!!!!!!!!!
-    drop_data.lat = 49.2444132;
-    drop_data.heading = 0.0;
-    drop_data.bottleID = 2;
+    drop_data = recieveData();
 
     bool notDropped = true;
     snprintf(buffer, sizeof(buffer), "Received data from Pi: %.8f,%.8f,%.2f,%d\n", drop_data.lat, drop_data.lon, drop_data.heading, drop_data.bottleID); Serial.print(buffer);
@@ -96,19 +97,12 @@ void loop() {
     // Serial.println("Wind: " + String(windspeed) + ", " + String(wind_heading));
     // calc_des_drop_state(windspeed, wind_heading, drop_data, &des_drop_data);
 
-    calc_des_drop_state(0, 0, drop_data, &des_drop_data); // TODO: REMOVE LATER!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
-    // Serial.println(latitudeToMeters(des_drop_data.lat)-latitudeToMeters(drop_data.lat));
-    // Serial.println(latitudeToMeters(des_drop_data.lon)-latitudeToMeters(drop_data.lon));
+    calc_des_drop_state(0, 0, drop_data, &des_drop_data);
     
     // Send desired drop point to Pi
     snprintf(buffer, sizeof(buffer), "%.8f,%.8f,%.2f,%d\n", des_drop_data.lat, des_drop_data.lon, des_drop_data.heading, des_drop_data.bottleID);
     PiSerial.print(buffer);
-    Serial.print("Sent desired drop point to Pi: "); Serial.print(buffer);
-
-    // Send message to parachutes (try 3 times; this is time sensitive so nothing we can do if it fails)
-    for (int i = 0; i < 3; i++) {
-        broadcastMessage(des_drop_data);
-    }
+    Serial.print("Sent desired drop point to Pi (not): "); Serial.print(buffer);
 
     // Wait to get close enough to desired drop point
     digitalWrite(LED_RED, HIGH);
@@ -119,25 +113,21 @@ void loop() {
         double lon = (double) msg.global_position_int.lon / 10000000.0;
         // Serial.println("Coords: " + String(lat, 8) + ", " + String(lon, 8));
 
-        if (FAILSAFE_MODE) {
-            if (msg.servo_output_raw.servo13_raw > 1500) { // If servo 13 is high, then drop the right bottle
-                des_drop_data.bottleID = 1; 
-                notDropped = false;
-                Serial.println("Failsafe mode: Right bottle dropped.");
-            } 
-            if (msg.servo_output_raw.servo14_raw > 1500) { // If servo 14 is high, then drop the left bottle
-                des_drop_data.bottleID = 2; 
-                notDropped = false;
-                Serial.println("Failsafe mode: Left bottle dropped.");
-            } 
-        }
-        else {
-            double dist_from_drop_point = distance(lat, lon, des_drop_data.lat, des_drop_data.lon);
-            Serial.println("Dist: " + String(dist_from_drop_point));
-            if (dist_from_drop_point < RELEASE_MARGIN) {
-                notDropped = false;
-                Serial.println("Reached drop point");
-            }
+        if (msg.servo_output_raw.servo13_raw > 1500) { // If servo 13 is high, then drop the left bottle
+            des_drop_data.bottleID = 1; 
+            notDropped = false;
+            Serial.println("Failsafe mode: Right bottle dropped.");
+        } 
+        if (msg.servo_output_raw.servo14_raw > 1500) { // If servo 14 is high, then drop the right bottle
+            des_drop_data.bottleID = 2; 
+            notDropped = false;
+            Serial.println("Failsafe mode: Left bottle dropped.");
+        } 
+        double dist_from_drop_point = distance(lat, lon, des_drop_data.lat, des_drop_data.lon);
+        Serial.println("Dist: " + String(dist_from_drop_point));
+        if (dist_from_drop_point < RELEASE_MARGIN) {
+            notDropped = false;
+            Serial.println("Reached drop point");
         }
     }
     digitalWrite(LED_RED, LOW);
