@@ -9,7 +9,7 @@
 #include "kalmanfilter.h"
 #include "WebStreamServer.h"
 
-#define ACQUIRE_RATE 57.0 //Hz
+#define ACQUIRE_RATE 225.0 //Hz
 #define DELTA_T (1.0f / ACQUIRE_RATE) //seconds
 #define NUM_STATES 2
 #define NUM_MEASUREMENTS 1
@@ -125,7 +125,7 @@ void loop()
   DoKalman();
   PrintSensorData();
 
-  //DoCount();
+  DoCount();
 }
 
 void DoKalman(){
@@ -243,7 +243,7 @@ void PrintSensorData(){
 void DoCount(){
   if(i > 1000){
     i = 0;
-    SERIAL_PORT.printf("100 iterations done in: %d mS\n", (int)(millis()-timeStart));
+    SERIAL_PORT.printf("1000 iterations done in: %d mS\n", (int)(millis()-timeStart));
     delay(5000);
     timeStart = millis();
   }

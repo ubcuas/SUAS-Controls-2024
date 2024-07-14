@@ -38,7 +38,8 @@
 #define GPS_TX 4
 #define GPS_RATE 5
 
-
+//This function over-writes the existing one in the icm library. 
+ICM_20948_Status_e ICM_20948::initializeDMP(void);
 
 namespace Sensors{
 
